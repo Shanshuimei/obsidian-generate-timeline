@@ -10,7 +10,7 @@ permissions:
   packages: write
 
 env:
-  PLUGIN_NAME: obsidian-timeline-plugin
+  PLUGIN_NAME: obsidian-generate-timeline
 
 jobs:
   build:
