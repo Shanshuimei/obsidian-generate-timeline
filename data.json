@@ -1,0 +1,9 @@
+{
+  "lineWidth": 2,
+  "lineColor": "var(--interactive-accent)",
+  "nodeSize": 16,
+  "nodeColor": "var(--interactive-accent)",
+  "itemSpacing": 30,
+  "cardBackground": "var(--background-primary-alt)",
+  "animationDuration": 200
+}
