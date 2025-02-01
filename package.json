@@ -1,7 +1,7 @@
 {
-  "name": "obsidian-timeline-plugin",
-  "version": "1.0.0",
-  "description": "Timeline plugin for Obsidian",
+  "name": "generate-timeline",
+  "version": "1.1.0",
+  "description": "Generate timelines from tag or folder automatically by any time properties.",
   "main": "main.js",
   "type": "module",
   "scripts": {

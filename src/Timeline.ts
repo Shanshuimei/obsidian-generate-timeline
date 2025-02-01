@@ -1,5 +1,5 @@
-import { TFile, TFolder } from 'obsidian';
-import { App } from 'obsidian';
+import { TFile, TFolder, App } from 'obsidian';
+import { TimelineSettings } from './TimelineSettings';
 
 export interface TimelineItem {
     date: Date;
@@ -10,9 +10,11 @@ export interface TimelineItem {
 
 export class Timeline {
     private app: App;
+    private settings: TimelineSettings;
 
-    constructor(app: App) {
+    constructor(app: App, settings: TimelineSettings) {
         this.app = app;
+        this.settings = settings;
     }
 
     private async getFilePreview(file: TFile): Promise<string> {
@@ -33,11 +35,11 @@ export class Timeline {
             for (const item of currentFolder.children) {
                 if (item instanceof TFile && item.extension === 'md') {
                     const metadata = this.app.metadataCache.getFileCache(item);
-                    const created = metadata?.frontmatter?.created;
+                    const dateValue = metadata?.frontmatter?.[this.settings.dateAttribute];
                     
-                    if (created) {
+                    if (dateValue) {
                         timelineItems.push({
-                            date: new Date(created),
+                            date: new Date(dateValue),
                             title: item.basename,
                             path: item.path,
                             preview: await this.getFilePreview(item)
@@ -58,8 +60,6 @@ export class Timeline {
 
     async generateFromTag(tag: string): Promise<TimelineItem[]> {
         const normalizedSearchTag = tag.replace('#', '').trim();
-        console.log('开始查找标签:', normalizedSearchTag);
-        
         const timelineItems: TimelineItem[] = [];
         const files = this.app.vault.getMarkdownFiles();
         
@@ -70,7 +70,6 @@ export class Timeline {
             // 分别检查 frontmatter 标签和内联标签
             if (metadata?.frontmatter?.tags) {
                 const frontmatterTags = metadata.frontmatter.tags;
-                console.log(`检查文件 ${file.path} 的 frontmatter 标签:`, frontmatterTags);
                 
                 // 检查不同格式的 frontmatter 标签
                 if (Array.isArray(frontmatterTags)) {
@@ -95,12 +94,11 @@ export class Timeline {
                 );
             }
             
-            const created = metadata?.frontmatter?.created;
+            const time = metadata?.frontmatter?.[this.settings.dateAttribute];
             
-            if (hasTag && created) {
-                console.log('找到匹配的文件:', file.path);
+            if (hasTag && time) {
                 timelineItems.push({
-                    date: new Date(created),
+                    date: new Date(time),
                     title: file.basename,
                     path: file.path,
                     preview: await this.getFilePreview(file)

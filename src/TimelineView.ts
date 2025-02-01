@@ -1,17 +1,24 @@
-import { ItemView, WorkspaceLeaf, TFolder, TFile } from 'obsidian';
+import { ItemView, WorkspaceLeaf, TFolder, TFile, Notice } from 'obsidian';
 import { Timeline, TimelineItem } from './Timeline';
-import { Notice } from 'obsidian';
+import { TimelineSettings } from './TimelineSettings';
 
 export const VIEW_TYPE_TIMELINE = 'timeline-view';
 
 export class TimelineView extends ItemView {
-    timeline: Timeline;
+    private timeline: Timeline;
+    private settings: TimelineSettings;
     items: TimelineItem[] = [];
     currentTitle: string = ''; // 新增：存储当前标题
 
     constructor(leaf: WorkspaceLeaf) {
         super(leaf);
-        this.timeline = new Timeline(this.app);
+    }
+
+    async onload() {
+        super.onload();
+        // 从插件实例获取设置
+        const settings = (this.app as any).plugins.plugins['obsidian-generate-timeline'].settings;
+        this.timeline = new Timeline(this.app, settings);
     }
 
     getViewType(): string {
@@ -119,8 +126,8 @@ export class TimelineView extends ItemView {
     }
 
     async updateFromFolder(folderPath: string) {
-        const folder = this.app.vault.getAbstractFileByPath(folderPath);
-        if (folder && folder instanceof TFolder) {
+        const folder = this.app.vault.getAbstractFileByPath(folderPath) as TFolder;
+        if (folder) {
             this.currentTitle = `📂 ${folder.name}`; // 设置文件夹标题
             this.items = await this.timeline.generateFromFolder(folder);
             await this.render();
@@ -128,37 +135,27 @@ export class TimelineView extends ItemView {
     }
 
     async updateFromTag(tag: string) {
-        console.log('选择的标签:', tag);
-        console.log('---开始处理---');
-        
         try {
-            this.currentTitle = `🏷️ ${tag}`; // 设置标签标题
-            // 获取所有包含给定标签及其子标签的文件
+            this.currentTitle = `🏷️ ${tag}`;
             const allTags = this.getAllChildTags(tag);
-            console.log('查找到的相关标签:', allTags);
-
             let allItems: TimelineItem[] = [];
+            
             for (const currentTag of allTags) {
-                console.log(`正在处理标签: ${currentTag}`);
                 const items = await this.timeline.generateFromTag(currentTag);
-                console.log(`标签 ${currentTag} 找到的项目数: ${items.length}`);
                 allItems = allItems.concat(items);
             }
 
-            // 按日期排序
             this.items = allItems.sort((a, b) => b.date.getTime() - a.date.getTime());
-            console.log('获取到的项目:', this.items);
             
             if (this.items.length === 0) {
-                console.log('没有找到包含该标签的文件');
                 new Notice(`没有找到包含标签 #${tag} 及其子标签的文件`);
                 return;
             }
 
             await this.render();
         } catch (error) {
-            console.error('生成时间轴过程中出错:', error);
             new Notice('生成时间轴失败');
+            throw error;
         }
     }
 

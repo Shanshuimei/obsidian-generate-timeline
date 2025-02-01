@@ -32,7 +32,7 @@ __export(main_exports, {
   default: () => TimelinePlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian6 = require("obsidian");
+var import_obsidian5 = require("obsidian");
 
 // src/TimelineView.ts
 var import_obsidian2 = require("obsidian");
@@ -40,9 +40,11 @@ var import_obsidian2 = require("obsidian");
 // src/Timeline.ts
 var import_obsidian = require("obsidian");
 var Timeline = class {
-  constructor(app) {
+  constructor(app, settings) {
     __publicField(this, "app");
+    __publicField(this, "settings");
     this.app = app;
+    this.settings = settings;
   }
   async getFilePreview(file) {
     const content = await this.app.vault.cachedRead(file);
@@ -59,10 +61,10 @@ var Timeline = class {
       for (const item of currentFolder.children) {
         if (item instanceof import_obsidian.TFile && item.extension === "md") {
           const metadata = this.app.metadataCache.getFileCache(item);
-          const created = (_a = metadata == null ? void 0 : metadata.frontmatter) == null ? void 0 : _a.created;
-          if (created) {
+          const dateValue = (_a = metadata == null ? void 0 : metadata.frontmatter) == null ? void 0 : _a[this.settings.dateAttribute];
+          if (dateValue) {
             timelineItems.push({
-              date: new Date(created),
+              date: new Date(dateValue),
               title: item.basename,
               path: item.path,
               preview: await this.getFilePreview(item)
@@ -79,7 +81,6 @@ var Timeline = class {
   async generateFromTag(tag) {
     var _a, _b;
     const normalizedSearchTag = tag.replace("#", "").trim();
-    console.log("\u5F00\u59CB\u67E5\u627E\u6807\u7B7E:", normalizedSearchTag);
     const timelineItems = [];
     const files = this.app.vault.getMarkdownFiles();
     for (const file of files) {
@@ -87,7 +88,6 @@ var Timeline = class {
       let hasTag = false;
       if ((_a = metadata == null ? void 0 : metadata.frontmatter) == null ? void 0 : _a.tags) {
         const frontmatterTags = metadata.frontmatter.tags;
-        console.log(`\u68C0\u67E5\u6587\u4EF6 ${file.path} \u7684 frontmatter \u6807\u7B7E:`, frontmatterTags);
         if (Array.isArray(frontmatterTags)) {
           hasTag = frontmatterTags.some(
             (t) => String(t).trim().replace("#", "") === normalizedSearchTag
@@ -102,11 +102,10 @@ var Timeline = class {
           (t) => t.tag.replace("#", "").trim() === normalizedSearchTag
         );
       }
-      const created = (_b = metadata == null ? void 0 : metadata.frontmatter) == null ? void 0 : _b.created;
-      if (hasTag && created) {
-        console.log("\u627E\u5230\u5339\u914D\u7684\u6587\u4EF6:", file.path);
+      const time = (_b = metadata == null ? void 0 : metadata.frontmatter) == null ? void 0 : _b[this.settings.dateAttribute];
+      if (hasTag && time) {
         timelineItems.push({
-          date: new Date(created),
+          date: new Date(time),
           title: file.basename,
           path: file.path,
           preview: await this.getFilePreview(file)
@@ -154,16 +153,20 @@ generated_from: ${source.type}:${source.value}
 };
 
 // src/TimelineView.ts
-var import_obsidian3 = require("obsidian");
 var VIEW_TYPE_TIMELINE = "timeline-view";
 var TimelineView = class extends import_obsidian2.ItemView {
   // 新增：存储当前标题
   constructor(leaf) {
     super(leaf);
     __publicField(this, "timeline");
+    __publicField(this, "settings");
     __publicField(this, "items", []);
     __publicField(this, "currentTitle", "");
-    this.timeline = new Timeline(this.app);
+  }
+  async onload() {
+    super.onload();
+    const settings = this.app.plugins.plugins["obsidian-generate-timeline"].settings;
+    this.timeline = new Timeline(this.app, settings);
   }
   getViewType() {
     return VIEW_TYPE_TIMELINE;
@@ -237,37 +240,30 @@ var TimelineView = class extends import_obsidian2.ItemView {
   }
   async updateFromFolder(folderPath) {
     const folder = this.app.vault.getAbstractFileByPath(folderPath);
-    if (folder && folder instanceof import_obsidian2.TFolder) {
+    if (folder) {
       this.currentTitle = `\u{1F4C2} ${folder.name}`;
       this.items = await this.timeline.generateFromFolder(folder);
       await this.render();
     }
   }
   async updateFromTag(tag) {
-    console.log("\u9009\u62E9\u7684\u6807\u7B7E:", tag);
-    console.log("---\u5F00\u59CB\u5904\u7406---");
     try {
       this.currentTitle = `\u{1F3F7}\uFE0F ${tag}`;
       const allTags = this.getAllChildTags(tag);
-      console.log("\u67E5\u627E\u5230\u7684\u76F8\u5173\u6807\u7B7E:", allTags);
       let allItems = [];
       for (const currentTag of allTags) {
-        console.log(`\u6B63\u5728\u5904\u7406\u6807\u7B7E: ${currentTag}`);
         const items = await this.timeline.generateFromTag(currentTag);
-        console.log(`\u6807\u7B7E ${currentTag} \u627E\u5230\u7684\u9879\u76EE\u6570: ${items.length}`);
         allItems = allItems.concat(items);
       }
       this.items = allItems.sort((a, b) => b.date.getTime() - a.date.getTime());
-      console.log("\u83B7\u53D6\u5230\u7684\u9879\u76EE:", this.items);
       if (this.items.length === 0) {
-        console.log("\u6CA1\u6709\u627E\u5230\u5305\u542B\u8BE5\u6807\u7B7E\u7684\u6587\u4EF6");
-        new import_obsidian3.Notice(`\u6CA1\u6709\u627E\u5230\u5305\u542B\u6807\u7B7E #${tag} \u53CA\u5176\u5B50\u6807\u7B7E\u7684\u6587\u4EF6`);
+        new import_obsidian2.Notice(`\u6CA1\u6709\u627E\u5230\u5305\u542B\u6807\u7B7E #${tag} \u53CA\u5176\u5B50\u6807\u7B7E\u7684\u6587\u4EF6`);
         return;
       }
       await this.render();
     } catch (error) {
-      console.error("\u751F\u6210\u65F6\u95F4\u8F74\u8FC7\u7A0B\u4E2D\u51FA\u9519:", error);
-      new import_obsidian3.Notice("\u751F\u6210\u65F6\u95F4\u8F74\u5931\u8D25");
+      new import_obsidian2.Notice("\u751F\u6210\u65F6\u95F4\u8F74\u5931\u8D25");
+      throw error;
     }
   }
   getAllChildTags(parentTag) {
@@ -292,8 +288,8 @@ var TimelineView = class extends import_obsidian2.ItemView {
 };
 
 // src/FolderSuggest.ts
-var import_obsidian4 = require("obsidian");
-var FolderSuggestModal = class extends import_obsidian4.FuzzySuggestModal {
+var import_obsidian3 = require("obsidian");
+var FolderSuggestModal = class extends import_obsidian3.FuzzySuggestModal {
   constructor(app) {
     super(app);
     __publicField(this, "resolve");
@@ -303,7 +299,7 @@ var FolderSuggestModal = class extends import_obsidian4.FuzzySuggestModal {
     const folders = [];
     const pushFolder = (folder) => {
       folders.push(folder);
-      folder.children.filter((child) => child instanceof import_obsidian4.TFolder).forEach(pushFolder);
+      folder.children.filter((child) => child instanceof import_obsidian3.TFolder).forEach(pushFolder);
     };
     const rootFolder = this.app.vault.getRoot();
     pushFolder(rootFolder);
@@ -330,8 +326,8 @@ var FolderSuggestModal = class extends import_obsidian4.FuzzySuggestModal {
 };
 
 // src/TagSuggest.ts
-var import_obsidian5 = require("obsidian");
-var TagSuggestModal = class extends import_obsidian5.FuzzySuggestModal {
+var import_obsidian4 = require("obsidian");
+var TagSuggestModal = class extends import_obsidian4.FuzzySuggestModal {
   constructor(app) {
     super(app);
     __publicField(this, "resolve");
@@ -389,12 +385,14 @@ var DEFAULT_SETTINGS = {
   itemSpacing: 30,
   cardBackground: getCssVariable("--background-primary-alt"),
   animationDuration: 200,
+  dateAttribute: "created",
+  // 默认使用 frontmatter 中的 date 属性作为时间轴排序依据
   fileNamePrefix: "",
   fileNameSuffix: ""
 };
 
 // src/main.ts
-var TimelinePlugin = class extends import_obsidian6.Plugin {
+var TimelinePlugin = class extends import_obsidian5.Plugin {
   constructor() {
     super(...arguments);
     __publicField(this, "settings");
@@ -411,7 +409,7 @@ var TimelinePlugin = class extends import_obsidian6.Plugin {
       this.registerEvent(
         this.app.workspace.on("file-menu", (menu, abstractFile) => {
           var _a;
-          if (abstractFile instanceof import_obsidian6.TFile && abstractFile.path.startsWith("timelines/") && abstractFile.extension === "md") {
+          if (abstractFile instanceof import_obsidian5.TFile && abstractFile.path.startsWith("timelines/") && abstractFile.extension === "md") {
             const cache = this.app.metadataCache.getFileCache(abstractFile);
             const generatedFrom = (_a = cache == null ? void 0 : cache.frontmatter) == null ? void 0 : _a.generated_from;
             if (generatedFrom) {
@@ -458,17 +456,14 @@ var TimelinePlugin = class extends import_obsidian6.Plugin {
           try {
             const folderPath = await this.selectFolder();
             if (folderPath) {
-              const view = this.getTimelineView();
-              if (view) {
-                const timeline = new Timeline(this.app);
-                const items = await timeline.generateFromFolder(this.app.vault.getAbstractFileByPath(folderPath));
-                const content = await timeline.generateTimelineMarkdown(items, `Timeline - ${folderPath}`, { type: "folder", value: folderPath });
-                const { folderPath: targetFolder, fileName } = await this.createNestedFolders(folderPath);
-                const finalFileName = this.generateFileName(fileName || folderPath.split("/").pop() || "");
-                const filePath = `${targetFolder}/${finalFileName}.md`;
-                const file = await this.app.vault.create(filePath, content);
-                await this.app.workspace.getLeaf().openFile(file);
-              }
+              const timeline = new Timeline(this.app, this.settings);
+              const items = await timeline.generateFromFolder(this.app.vault.getAbstractFileByPath(folderPath));
+              const content = await timeline.generateTimelineMarkdown(items, `Timeline - ${folderPath}`, { type: "folder", value: folderPath });
+              const { folderPath: targetFolder, fileName } = await this.createNestedFolders(folderPath);
+              const finalFileName = this.generateFileName(fileName || folderPath.split("/").pop() || "");
+              const filePath = `${targetFolder}/${finalFileName}.md`;
+              const file = await this.app.vault.create(filePath, content);
+              await this.app.workspace.getLeaf().openFile(file);
             }
           } catch (error) {
             console.error("\u751F\u6210\u6587\u4EF6\u5939\u65F6\u95F4\u8F74\u6587\u4EF6\u65F6\u51FA\u9519:", error);
@@ -588,13 +583,13 @@ var TimelinePlugin = class extends import_obsidian6.Plugin {
     const fileName = parts.pop();
     let currentPath = "timelines";
     for (const part of parts) {
-      currentPath = `${currentPath}/${part}`;
+      currentPath = (0, import_obsidian5.normalizePath)(`${currentPath}/${part}`);
       const folder = this.app.vault.getAbstractFileByPath(currentPath);
       if (!folder) {
         try {
           await this.app.vault.createFolder(currentPath);
         } catch (error) {
-          console.error(`\u521B\u5EFA\u6587\u4EF6\u5939\u5931\u8D25: ${currentPath}`, error);
+          new import_obsidian5.Notice(`\u521B\u5EFA\u6587\u4EF6\u5939\u5931\u8D25: ${currentPath}`);
           throw error;
         }
       }
@@ -612,7 +607,7 @@ var TimelinePlugin = class extends import_obsidian6.Plugin {
       const { folderPath, fileName } = await this.createNestedFolders(tagPath);
       const finalFileName = this.generateFileName(fileName || "");
       const filePath = `${folderPath}/${finalFileName}.md`;
-      const timeline = new Timeline(this.app);
+      const timeline = new Timeline(this.app, this.settings);
       const items = await timeline.generateFromTag(tag);
       const content = await timeline.generateTimelineMarkdown(items, `Timeline - ${tag}`, { type: "tag", value: tag });
       const file = await this.app.vault.create(filePath, content);
@@ -623,7 +618,7 @@ var TimelinePlugin = class extends import_obsidian6.Plugin {
     }
   }
 };
-var TimelineSettingTab = class extends import_obsidian6.PluginSettingTab {
+var TimelineSettingTab = class extends import_obsidian5.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     __publicField(this, "plugin");
@@ -633,16 +628,16 @@ var TimelineSettingTab = class extends import_obsidian6.PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
     containerEl.createEl("h2", { text: "\u65F6\u95F4\u8F74\u8BBE\u7F6E" });
-    new import_obsidian6.Setting(containerEl).setName("\u91CD\u7F6E\u8BBE\u7F6E").setDesc("\u5C06\u6240\u6709\u8BBE\u7F6E\u6062\u590D\u4E3A\u9ED8\u8BA4\u503C").addButton((button) => button.setButtonText("\u91CD\u7F6E\u4E3A\u9ED8\u8BA4\u503C").onClick(async () => {
+    new import_obsidian5.Setting(containerEl).setName("\u91CD\u7F6E\u8BBE\u7F6E").setDesc("\u5C06\u6240\u6709\u8BBE\u7F6E\u6062\u590D\u4E3A\u9ED8\u8BA4\u503C").addButton((button) => button.setButtonText("\u91CD\u7F6E\u4E3A\u9ED8\u8BA4\u503C").onClick(async () => {
       this.plugin.settings = Object.assign({}, DEFAULT_SETTINGS);
       await this.plugin.saveSettings();
       this.display();
     }));
-    new import_obsidian6.Setting(containerEl).setName("\u65F6\u95F4\u8F74\u7EBF\u5BBD\u5EA6").setDesc("\u8BBE\u7F6E\u4E3B\u65F6\u95F4\u8F74\u7EBF\u7684\u5BBD\u5EA6\uFF08\u50CF\u7D20\uFF09").addSlider((slider) => slider.setLimits(1, 10, 1).setValue(this.plugin.settings.lineWidth).onChange(async (value) => {
+    new import_obsidian5.Setting(containerEl).setName("\u65F6\u95F4\u8F74\u7EBF\u5BBD\u5EA6").setDesc("\u8BBE\u7F6E\u4E3B\u65F6\u95F4\u8F74\u7EBF\u7684\u5BBD\u5EA6\uFF08\u50CF\u7D20\uFF09").addSlider((slider) => slider.setLimits(1, 10, 1).setValue(this.plugin.settings.lineWidth).onChange(async (value) => {
       this.plugin.settings.lineWidth = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian6.Setting(containerEl).setName("\u65F6\u95F4\u8F74\u7EBF\u989C\u8272").setDesc("\u8BBE\u7F6E\u65F6\u95F4\u8F74\u7EBF\u7684\u989C\u8272").addColorPicker((color) => color.setValue(this.plugin.settings.lineColor).onChange(async (value) => {
+    new import_obsidian5.Setting(containerEl).setName("\u65F6\u95F4\u8F74\u7EBF\u989C\u8272").setDesc("\u8BBE\u7F6E\u65F6\u95F4\u8F74\u7EBF\u7684\u989C\u8272").addColorPicker((color) => color.setValue(this.plugin.settings.lineColor).onChange(async (value) => {
       this.plugin.settings.lineColor = value;
       await this.plugin.saveSettings();
     })).addText((text) => text.setPlaceholder("\u70B9\u51FB\u5DE6\u4FA7\u8272\u76D8\u9009\u62E9\u989C\u8272").setValue("").onChange(async (value) => {
@@ -651,11 +646,11 @@ var TimelineSettingTab = class extends import_obsidian6.PluginSettingTab {
         await this.plugin.saveSettings();
       }
     }));
-    new import_obsidian6.Setting(containerEl).setName("\u8282\u70B9\u5927\u5C0F").setDesc("\u8BBE\u7F6E\u65F6\u95F4\u8282\u70B9\u7684\u5927\u5C0F\uFF08\u50CF\u7D20\uFF09").addSlider((slider) => slider.setLimits(8, 32, 2).setValue(this.plugin.settings.nodeSize).onChange(async (value) => {
+    new import_obsidian5.Setting(containerEl).setName("\u8282\u70B9\u5927\u5C0F").setDesc("\u8BBE\u7F6E\u65F6\u95F4\u8282\u70B9\u7684\u5927\u5C0F\uFF08\u50CF\u7D20\uFF09").addSlider((slider) => slider.setLimits(8, 32, 2).setValue(this.plugin.settings.nodeSize).onChange(async (value) => {
       this.plugin.settings.nodeSize = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian6.Setting(containerEl).setName("\u8282\u70B9\u989C\u8272").setDesc("\u8BBE\u7F6E\u65F6\u95F4\u8282\u70B9\u7684\u989C\u8272").addColorPicker((color) => color.setValue(this.plugin.settings.nodeColor).onChange(async (value) => {
+    new import_obsidian5.Setting(containerEl).setName("\u8282\u70B9\u989C\u8272").setDesc("\u8BBE\u7F6E\u65F6\u95F4\u8282\u70B9\u7684\u989C\u8272").addColorPicker((color) => color.setValue(this.plugin.settings.nodeColor).onChange(async (value) => {
       this.plugin.settings.nodeColor = value;
       await this.plugin.saveSettings();
     })).addText((text) => text.setPlaceholder("\u70B9\u51FB\u5DE6\u4FA7\u8272\u76D8\u9009\u62E9\u989C\u8272").setValue("").onChange(async (value) => {
@@ -664,11 +659,11 @@ var TimelineSettingTab = class extends import_obsidian6.PluginSettingTab {
         await this.plugin.saveSettings();
       }
     }));
-    new import_obsidian6.Setting(containerEl).setName("\u9879\u76EE\u95F4\u8DDD").setDesc("\u8BBE\u7F6E\u65F6\u95F4\u8F74\u9879\u76EE\u4E4B\u95F4\u7684\u95F4\u8DDD\uFF08\u50CF\u7D20\uFF09").addSlider((slider) => slider.setLimits(10, 100, 5).setValue(this.plugin.settings.itemSpacing).onChange(async (value) => {
+    new import_obsidian5.Setting(containerEl).setName("\u9879\u76EE\u95F4\u8DDD").setDesc("\u8BBE\u7F6E\u65F6\u95F4\u8F74\u9879\u76EE\u4E4B\u95F4\u7684\u95F4\u8DDD\uFF08\u50CF\u7D20\uFF09").addSlider((slider) => slider.setLimits(10, 100, 5).setValue(this.plugin.settings.itemSpacing).onChange(async (value) => {
       this.plugin.settings.itemSpacing = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian6.Setting(containerEl).setName("\u5361\u7247\u80CC\u666F\u8272").setDesc("\u8BBE\u7F6E\u5185\u5BB9\u5361\u7247\u7684\u80CC\u666F\u989C\u8272").addColorPicker((color) => color.setValue(this.plugin.settings.cardBackground).onChange(async (value) => {
+    new import_obsidian5.Setting(containerEl).setName("\u5361\u7247\u80CC\u666F\u8272").setDesc("\u8BBE\u7F6E\u5185\u5BB9\u5361\u7247\u7684\u80CC\u666F\u989C\u8272").addColorPicker((color) => color.setValue(this.plugin.settings.cardBackground).onChange(async (value) => {
       this.plugin.settings.cardBackground = value;
       await this.plugin.saveSettings();
     })).addText((text) => text.setPlaceholder("\u70B9\u51FB\u5DE6\u4FA7\u8272\u76D8\u9009\u62E9\u989C\u8272").setValue("").onChange(async (value) => {
@@ -677,15 +672,19 @@ var TimelineSettingTab = class extends import_obsidian6.PluginSettingTab {
         await this.plugin.saveSettings();
       }
     }));
-    new import_obsidian6.Setting(containerEl).setName("\u52A8\u753B\u6301\u7EED\u65F6\u95F4").setDesc("\u8BBE\u7F6E\u60AC\u505C\u52A8\u753B\u7684\u6301\u7EED\u65F6\u95F4\uFF08\u6BEB\u79D2\uFF09").addSlider((slider) => slider.setLimits(0, 1e3, 50).setValue(this.plugin.settings.animationDuration).onChange(async (value) => {
+    new import_obsidian5.Setting(containerEl).setName("\u52A8\u753B\u6301\u7EED\u65F6\u95F4").setDesc("\u8BBE\u7F6E\u60AC\u505C\u52A8\u753B\u7684\u6301\u7EED\u65F6\u95F4\uFF08\u6BEB\u79D2\uFF09").addSlider((slider) => slider.setLimits(0, 1e3, 50).setValue(this.plugin.settings.animationDuration).onChange(async (value) => {
       this.plugin.settings.animationDuration = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian6.Setting(containerEl).setName("\u6587\u4EF6\u540D\u524D\u7F00").setDesc("\u8BBE\u7F6E\u751F\u6210\u7684\u65F6\u95F4\u8F74\u6587\u4EF6\u540D\u524D\u7F00").addText((text) => text.setPlaceholder("\u8F93\u5165\u524D\u7F00").setValue(this.plugin.settings.fileNamePrefix).onChange(async (value) => {
+    new import_obsidian5.Setting(containerEl).setName("\u65E5\u671F\u5C5E\u6027").setDesc("\u9009\u62E9\u7528\u4E8E\u65F6\u95F4\u8F74\u6392\u5E8F\u7684 frontmatter \u65E5\u671F\u5C5E\u6027\uFF08\u5982\uFF1Acreated, updated, date \u7B49\uFF09").addText((text) => text.setPlaceholder("\u8F93\u5165\u65E5\u671F\u5C5E\u6027\u540D").setValue(this.plugin.settings.dateAttribute).onChange(async (value) => {
+      this.plugin.settings.dateAttribute = value;
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian5.Setting(containerEl).setName("\u6587\u4EF6\u540D\u524D\u7F00").setDesc("\u8BBE\u7F6E\u751F\u6210\u7684\u65F6\u95F4\u8F74\u6587\u4EF6\u540D\u524D\u7F00").addText((text) => text.setPlaceholder("\u8F93\u5165\u524D\u7F00").setValue(this.plugin.settings.fileNamePrefix).onChange(async (value) => {
       this.plugin.settings.fileNamePrefix = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian6.Setting(containerEl).setName("\u6587\u4EF6\u540D\u540E\u7F00").setDesc("\u8BBE\u7F6E\u751F\u6210\u7684\u65F6\u95F4\u8F74\u6587\u4EF6\u540D\u540E\u7F00").addText((text) => text.setPlaceholder("\u8F93\u5165\u540E\u7F00").setValue(this.plugin.settings.fileNameSuffix).onChange(async (value) => {
+    new import_obsidian5.Setting(containerEl).setName("\u6587\u4EF6\u540D\u540E\u7F00").setDesc("\u8BBE\u7F6E\u751F\u6210\u7684\u65F6\u95F4\u8F74\u6587\u4EF6\u540D\u540E\u7F00").addText((text) => text.setPlaceholder("\u8F93\u5165\u540E\u7F00").setValue(this.plugin.settings.fileNameSuffix).onChange(async (value) => {
       this.plugin.settings.fileNameSuffix = value;
       await this.plugin.saveSettings();
     }));

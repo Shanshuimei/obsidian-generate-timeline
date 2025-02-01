@@ -1,9 +1,9 @@
 {
 	"id": "obsidian-generate-timeline",
 	"name": "Generate Timeline",
-	"version": "1.0.0",
-	"minAppVersion": "0.0.0",
-	"description": "An Obsidian plugin to generate timelines from tag or folder automatically.",
+	"version": "1.1.0",
+	"minAppVersion": "0.15.0",
+	"description": "Generate timelines from tag or folder automatically by any time properties.",
 	"author": "Shanshuimei",
 	"authorUrl": "https://github.com/Shanshuimei/obsidian-generate-timeline",
 	"isDesktopOnly": false

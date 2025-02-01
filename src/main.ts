@@ -5,7 +5,9 @@ import {
 	Setting, 
 	TFile, 
 	Menu,
-	TAbstractFile
+	TAbstractFile,
+	normalizePath,
+	Notice
 } from 'obsidian';
 import { TimelineView, VIEW_TYPE_TIMELINE } from './TimelineView';
 import { FolderSuggestModal } from './FolderSuggest';
@@ -95,19 +97,16 @@ export default class TimelinePlugin extends Plugin {
 					try {
 						const folderPath = await this.selectFolder();
 						if (folderPath) {
-							const view = this.getTimelineView();
-							if (view) {
-								const timeline = new Timeline(this.app);
-								const items = await timeline.generateFromFolder(this.app.vault.getAbstractFileByPath(folderPath) as TFolder);
-								const content = await timeline.generateTimelineMarkdown(items, `Timeline - ${folderPath}`, { type: 'folder', value: folderPath });
-								
-								// 创建并打开文件
-								const { folderPath: targetFolder, fileName } = await this.createNestedFolders(folderPath);
-								const finalFileName = this.generateFileName(fileName || folderPath.split('/').pop() || '');
-								const filePath = `${targetFolder}/${finalFileName}.md`;
-								const file = await this.app.vault.create(filePath, content);
-								await this.app.workspace.getLeaf().openFile(file);
-							}
+							const timeline = new Timeline(this.app, this.settings);
+							const items = await timeline.generateFromFolder(this.app.vault.getAbstractFileByPath(folderPath) as TFolder);
+							const content = await timeline.generateTimelineMarkdown(items, `Timeline - ${folderPath}`, { type: 'folder', value: folderPath });
+							
+							// 创建并打开文件
+							const { folderPath: targetFolder, fileName } = await this.createNestedFolders(folderPath);
+							const finalFileName = this.generateFileName(fileName || folderPath.split('/').pop() || '');
+							const filePath = `${targetFolder}/${finalFileName}.md`;
+							const file = await this.app.vault.create(filePath, content);
+							await this.app.workspace.getLeaf().openFile(file);
 						}
 					} catch (error) {
 						console.error('生成文件夹时间轴文件时出错:', error);
@@ -245,13 +244,13 @@ export default class TimelinePlugin extends Plugin {
 
 		// 为每个父文件夹创建目录
 		for (const part of parts) {
-			currentPath = `${currentPath}/${part}`;
+			currentPath = normalizePath(`${currentPath}/${part}`);
 			const folder = this.app.vault.getAbstractFileByPath(currentPath);
 			if (!folder) {
 				try {
 					await this.app.vault.createFolder(currentPath);
 				} catch (error) {
-					console.error(`创建文件夹失败: ${currentPath}`, error);
+					new Notice(`创建文件夹失败: ${currentPath}`);
 					throw error;
 				}
 			}
@@ -273,7 +272,7 @@ export default class TimelinePlugin extends Plugin {
 			const finalFileName = this.generateFileName(fileName || '');
 			const filePath = `${folderPath}/${finalFileName}.md`;
 			
-			const timeline = new Timeline(this.app);
+			const timeline = new Timeline(this.app, this.settings);
 			const items = await timeline.generateFromTag(tag);
 			const content = await timeline.generateTimelineMarkdown(items, `Timeline - ${tag}`, { type: 'tag', value: tag });
 			
@@ -411,6 +410,18 @@ class TimelineSettingTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.animationDuration)
 				.onChange(async (value) => {
 					this.plugin.settings.animationDuration = value;
+					await this.plugin.saveSettings();
+				}));
+
+		// 在文件名设置前添加日期属性设置
+		new Setting(containerEl)
+			.setName('日期属性')
+			.setDesc('选择用于时间轴排序的 frontmatter 日期属性（如：created, updated, date 等）')
+			.addText(text => text
+				.setPlaceholder('输入日期属性名')
+				.setValue(this.plugin.settings.dateAttribute)
+				.onChange(async (value) => {
+					this.plugin.settings.dateAttribute = value;
 					await this.plugin.saveSettings();
 				}));
 
