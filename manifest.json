@@ -5,6 +5,6 @@
 	"minAppVersion": "0.15.0",
 	"description": "Generate timelines from tag or folder automatically by any time properties.",
 	"author": "Shanshuimei",
-	"authorUrl": "https://github.com/Shanshuimei/obsidian-generate-timeline",
+	"authorUrl": "https://github.com/Shanshuimei",
 	"isDesktopOnly": false
 }
