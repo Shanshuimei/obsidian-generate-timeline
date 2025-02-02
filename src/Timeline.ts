@@ -86,14 +86,18 @@ export class Timeline {
         
         for (const file of allFiles) {
             const cache = this.app.metadataCache.getFileCache(file);
-            if (!cache?.tags) continue;
+            if (!cache) continue;
 
             // 检查文件是否包含目标标签或其子标签
-            const hasMatchingTag = cache.tags.some(tagObj => {
+            const hasMatchingTag = (cache.tags && cache.tags.some(tagObj => {
                 const fileTag = tagObj.tag.replace(/^#/, '');
                 return fileTag === normalizedTag || // 完全匹配
                        fileTag.startsWith(normalizedTag + '/'); // 子标签匹配
-            });
+            })) || (cache.frontmatter && cache.frontmatter.tags && cache.frontmatter.tags.some((frontmatterTag: string) => {
+                const fileTag = frontmatterTag.replace(/^#/, '');
+                return fileTag === normalizedTag || // 完全匹配
+                       fileTag.startsWith(normalizedTag + '/'); // 子标签匹配
+            }));
 
             if (hasMatchingTag) {
                 const item = await this.createTimelineItem(file);
@@ -102,6 +106,10 @@ export class Timeline {
                 }
             }
         }
+        
+        // 按日期排序
+        return this.sortItemsByDate(items);
+    }
         
         // 按日期排序
         return this.sortItemsByDate(items);
