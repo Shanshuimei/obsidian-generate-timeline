@@ -51,6 +51,23 @@ var Timeline = class {
     const previewContent = content.replace(/^---[\s\S]*?---/, "").trim();
     return previewContent.slice(0, 100) + (previewContent.length > 100 ? "..." : "");
   }
+  async createTimelineItem(file) {
+    var _a;
+    const metadata = this.app.metadataCache.getFileCache(file);
+    const dateValue = (_a = metadata == null ? void 0 : metadata.frontmatter) == null ? void 0 : _a[this.settings.dateAttribute];
+    if (dateValue) {
+      return {
+        date: new Date(dateValue),
+        title: file.basename,
+        path: file.path,
+        preview: await this.getFilePreview(file)
+      };
+    }
+    return null;
+  }
+  sortItemsByDate(items) {
+    return items.sort((a, b) => b.date.getTime() - a.date.getTime());
+  }
   async generateFromFolder(folder) {
     if (folder.path === "timelines") {
       return [];
@@ -79,43 +96,28 @@ var Timeline = class {
     return timelineItems.sort((a, b) => b.date.getTime() - a.date.getTime());
   }
   async generateFromTag(tag) {
-    var _a, _b;
-    const normalizedSearchTag = tag.replace("#", "").trim();
-    console.log("\u5F00\u59CB\u67E5\u627E\u6807\u7B7E:", normalizedSearchTag);
-    const timelineItems = [];
-    const files = this.app.vault.getMarkdownFiles();
-    for (const file of files) {
-      const metadata = this.app.metadataCache.getFileCache(file);
-      let hasTag = false;
-      if ((_a = metadata == null ? void 0 : metadata.frontmatter) == null ? void 0 : _a.tags) {
-        const frontmatterTags = metadata.frontmatter.tags;
-        console.log(`\u68C0\u67E5\u6587\u4EF6 ${file.path} \u7684 frontmatter \u6807\u7B7E:`, frontmatterTags);
-        if (Array.isArray(frontmatterTags)) {
-          hasTag = frontmatterTags.some(
-            (t) => String(t).trim().replace("#", "") === normalizedSearchTag
-          );
-        } else if (typeof frontmatterTags === "string") {
-          const tagList = frontmatterTags.includes(",") ? frontmatterTags.split(",").map((t) => t.trim()) : frontmatterTags.split("\n").map((t) => t.replace(/^-\s*/, "").trim());
-          hasTag = tagList.some((t) => t.replace("#", "") === normalizedSearchTag);
+    var _a;
+    const allFiles = this.app.vault.getMarkdownFiles();
+    const items = [];
+    tag = tag.replace(/^#/, "");
+    for (const file of allFiles) {
+      const cache = this.app.metadataCache.getFileCache(file);
+      if (!cache)
+        continue;
+      const fileTags = ((_a = cache.tags) == null ? void 0 : _a.map((t) => t.tag.replace(/^#/, ""))) || [];
+      const hasMatchingTag = fileTags.some(
+        (fileTag) => fileTag === tag || // 完全匹配
+        fileTag.startsWith(tag + "/")
+        // 子标签匹配
+      );
+      if (hasMatchingTag) {
+        const item = await this.createTimelineItem(file);
+        if (item) {
+          items.push(item);
         }
       }
-      if (!hasTag && (metadata == null ? void 0 : metadata.tags)) {
-        hasTag = metadata.tags.some(
-          (t) => t.tag.replace("#", "").trim() === normalizedSearchTag
-        );
-      }
-      const time = (_b = metadata == null ? void 0 : metadata.frontmatter) == null ? void 0 : _b[this.settings.dateAttribute];
-      if (hasTag && time) {
-        console.log("\u627E\u5230\u5339\u914D\u7684\u6587\u4EF6:", file.path);
-        timelineItems.push({
-          date: new Date(time),
-          title: file.basename,
-          path: file.path,
-          preview: await this.getFilePreview(file)
-        });
-      }
     }
-    return timelineItems.sort((a, b) => b.date.getTime() - a.date.getTime());
+    return this.sortItemsByDate(items);
   }
   async generateTimelineMarkdown(items, title, source) {
     let markdown = `---

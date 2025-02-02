@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, TFolder, TFile, Notice } from 'obsidian';
+import { ItemView, WorkspaceLeaf, TFolder, TFile, Notice, App } from 'obsidian';
 import { Timeline, TimelineItem } from './Timeline';
 import { TimelineSettings } from './TimelineSettings';
 

@@ -23,6 +23,25 @@ export class Timeline {
         return previewContent.slice(0, 100) + (previewContent.length > 100 ? '...' : '');
     }
 
+    private async createTimelineItem(file: TFile): Promise<TimelineItem | null> {
+        const metadata = this.app.metadataCache.getFileCache(file);
+        const dateValue = metadata?.frontmatter?.[this.settings.dateAttribute];
+        
+        if (dateValue) {
+            return {
+                date: new Date(dateValue),
+                title: file.basename,
+                path: file.path,
+                preview: await this.getFilePreview(file)
+            };
+        }
+        return null;
+    }
+
+    private sortItemsByDate(items: TimelineItem[]): TimelineItem[] {
+        return items.sort((a, b) => b.date.getTime() - a.date.getTime());
+    }
+
     async generateFromFolder(folder: TFolder): Promise<TimelineItem[]> {
         if (folder.path === 'timelines') {
             return [];
@@ -59,58 +78,35 @@ export class Timeline {
     }
 
     async generateFromTag(tag: string): Promise<TimelineItem[]> {
-        const normalizedSearchTag = tag.replace('#', '').trim();
-        console.log('开始查找标签:', normalizedSearchTag);
+        const allFiles = this.app.vault.getMarkdownFiles();
+        const items: TimelineItem[] = [];
         
-        const timelineItems: TimelineItem[] = [];
-        const files = this.app.vault.getMarkdownFiles();
+        // 移除开头的#号（如果存在）
+        tag = tag.replace(/^#/, '');
         
-        for (const file of files) {
-            const metadata = this.app.metadataCache.getFileCache(file);
-            let hasTag = false;
+        for (const file of allFiles) {
+            const cache = this.app.metadataCache.getFileCache(file);
+            if (!cache) continue;
+
+            // 获取文件的所有标签
+            const fileTags = cache.tags?.map(t => t.tag.replace(/^#/, '')) || [];
             
-            // 分别检查 frontmatter 标签和内联标签
-            if (metadata?.frontmatter?.tags) {
-                const frontmatterTags = metadata.frontmatter.tags;
-                console.log(`检查文件 ${file.path} 的 frontmatter 标签:`, frontmatterTags);
-                
-                // 检查不同格式的 frontmatter 标签
-                if (Array.isArray(frontmatterTags)) {
-                    // 处理数组格式的标签
-                    hasTag = frontmatterTags.some(t => 
-                        String(t).trim().replace('#', '') === normalizedSearchTag
-                    );
-                } else if (typeof frontmatterTags === 'string') {
-                    // 处理字符串格式的标签（可能是YAML列表或逗号分隔的字符串）
-                    const tagList = frontmatterTags.includes(',') 
-                        ? frontmatterTags.split(',').map(t => t.trim())
-                        : frontmatterTags.split('\n').map(t => t.replace(/^-\s*/, '').trim());
-                    
-                    hasTag = tagList.some(t => t.replace('#', '') === normalizedSearchTag);
+            // 检查文件是否包含目标标签或其子标签
+            const hasMatchingTag = fileTags.some(fileTag => 
+                fileTag === tag || // 完全匹配
+                fileTag.startsWith(tag + '/') // 子标签匹配
+            );
+
+            if (hasMatchingTag) {
+                const item = await this.createTimelineItem(file);
+                if (item) {
+                    items.push(item);
                 }
-            }
-            
-            // 如果在 frontmatter 中没找到，检查内联标签
-            if (!hasTag && metadata?.tags) {
-                hasTag = metadata.tags.some((t: {tag: string}) => 
-                    t.tag.replace('#', '').trim() === normalizedSearchTag
-                );
-            }
-            
-            const time = metadata?.frontmatter?.[this.settings.dateAttribute];
-            
-            if (hasTag && time) {
-                console.log('找到匹配的文件:', file.path);
-                timelineItems.push({
-                    date: new Date(time),
-                    title: file.basename,
-                    path: file.path,
-                    preview: await this.getFilePreview(file)
-                });
             }
         }
         
-        return timelineItems.sort((a, b) => b.date.getTime() - a.date.getTime());
+        // 按日期排序
+        return this.sortItemsByDate(items);
     }
 
     async generateTimelineMarkdown(items: TimelineItem[], title: string, source: { type: 'tag' | 'folder', value: string }): Promise<string> {
