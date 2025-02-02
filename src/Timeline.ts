@@ -82,20 +82,18 @@ export class Timeline {
         const items: TimelineItem[] = [];
         
         // 移除开头的#号（如果存在）
-        tag = tag.replace(/^#/, '');
+        const normalizedTag = tag.replace(/^#/, '');
         
         for (const file of allFiles) {
             const cache = this.app.metadataCache.getFileCache(file);
-            if (!cache) continue;
+            if (!cache?.tags) continue;
 
-            // 获取文件的所有标签
-            const fileTags = cache.tags?.map(t => t.tag.replace(/^#/, '')) || [];
-            
             // 检查文件是否包含目标标签或其子标签
-            const hasMatchingTag = fileTags.some(fileTag => 
-                fileTag === tag || // 完全匹配
-                fileTag.startsWith(tag + '/') // 子标签匹配
-            );
+            const hasMatchingTag = cache.tags.some(tagObj => {
+                const fileTag = tagObj.tag.replace(/^#/, '');
+                return fileTag === normalizedTag || // 完全匹配
+                       fileTag.startsWith(normalizedTag + '/'); // 子标签匹配
+            });
 
             if (hasMatchingTag) {
                 const item = await this.createTimelineItem(file);

@@ -96,20 +96,18 @@ var Timeline = class {
     return timelineItems.sort((a, b) => b.date.getTime() - a.date.getTime());
   }
   async generateFromTag(tag) {
-    var _a;
     const allFiles = this.app.vault.getMarkdownFiles();
     const items = [];
-    tag = tag.replace(/^#/, "");
+    const normalizedTag = tag.replace(/^#/, "");
     for (const file of allFiles) {
       const cache = this.app.metadataCache.getFileCache(file);
-      if (!cache)
+      if (!(cache == null ? void 0 : cache.tags))
         continue;
-      const fileTags = ((_a = cache.tags) == null ? void 0 : _a.map((t) => t.tag.replace(/^#/, ""))) || [];
-      const hasMatchingTag = fileTags.some(
-        (fileTag) => fileTag === tag || // 完全匹配
-        fileTag.startsWith(tag + "/")
-        // 子标签匹配
-      );
+      const hasMatchingTag = cache.tags.some((tagObj) => {
+        const fileTag = tagObj.tag.replace(/^#/, "");
+        return fileTag === normalizedTag || // 完全匹配
+        fileTag.startsWith(normalizedTag + "/");
+      });
       if (hasMatchingTag) {
         const item = await this.createTimelineItem(file);
         if (item) {
@@ -250,13 +248,8 @@ var TimelineView = class extends import_obsidian2.ItemView {
   async updateFromTag(tag) {
     try {
       this.currentTitle = `\u{1F3F7}\uFE0F ${tag}`;
-      const allTags = this.getAllChildTags(tag);
-      let allItems = [];
-      for (const currentTag of allTags) {
-        const items = await this.timeline.generateFromTag(currentTag);
-        allItems = allItems.concat(items);
-      }
-      this.items = allItems.sort((a, b) => b.date.getTime() - a.date.getTime());
+      const items = await this.timeline.generateFromTag(tag);
+      this.items = items;
       if (this.items.length === 0) {
         new import_obsidian2.Notice(`\u6CA1\u6709\u627E\u5230\u5305\u542B\u6807\u7B7E #${tag} \u53CA\u5176\u5B50\u6807\u7B7E\u7684\u6587\u4EF6`);
         return;
@@ -266,22 +259,6 @@ var TimelineView = class extends import_obsidian2.ItemView {
       new import_obsidian2.Notice("\u751F\u6210\u65F6\u95F4\u8F74\u5931\u8D25");
       throw error;
     }
-  }
-  getAllChildTags(parentTag) {
-    const allTags = /* @__PURE__ */ new Set();
-    const normalizedParentTag = parentTag.startsWith("#") ? parentTag.slice(1) : parentTag;
-    const files = this.app.vault.getMarkdownFiles();
-    files.forEach((file) => {
-      const cache = this.app.metadataCache.getFileCache(file);
-      const tags = (cache == null ? void 0 : cache.tags) || [];
-      tags.forEach((tagObj) => {
-        const tag = tagObj.tag.startsWith("#") ? tagObj.tag.slice(1) : tagObj.tag;
-        if (tag === normalizedParentTag || tag.startsWith(normalizedParentTag + "/")) {
-          allTags.add(tag);
-        }
-      });
-    });
-    return Array.from(allTags);
   }
   getIcon() {
     return "history";

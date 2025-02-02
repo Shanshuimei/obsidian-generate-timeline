@@ -132,15 +132,8 @@ export class TimelineView extends ItemView {
     async updateFromTag(tag: string) {
         try {
             this.currentTitle = `🏷️ ${tag}`;
-            const allTags = this.getAllChildTags(tag);
-            let allItems: TimelineItem[] = [];
-            
-            for (const currentTag of allTags) {
-                const items = await this.timeline.generateFromTag(currentTag);
-                allItems = allItems.concat(items);
-            }
-
-            this.items = allItems.sort((a, b) => b.date.getTime() - a.date.getTime());
+            const items = await this.timeline.generateFromTag(tag);
+            this.items = items;
             
             if (this.items.length === 0) {
                 new Notice(`没有找到包含标签 #${tag} 及其子标签的文件`);
@@ -152,29 +145,6 @@ export class TimelineView extends ItemView {
             new Notice('生成时间轴失败');
             throw error;
         }
-    }
-
-    private getAllChildTags(parentTag: string): string[] {
-        const allTags = new Set<string>();
-        const normalizedParentTag = parentTag.startsWith('#') ? parentTag.slice(1) : parentTag;
-        
-        // 获取所有文件的缓存
-        const files = this.app.vault.getMarkdownFiles();
-        
-        files.forEach(file => {
-            const cache = this.app.metadataCache.getFileCache(file);
-            const tags = cache?.tags || [];
-            
-            tags.forEach(tagObj => {
-                const tag = tagObj.tag.startsWith('#') ? tagObj.tag.slice(1) : tagObj.tag;
-                // 检查标签是否是父标签本身或其子标签
-                if (tag === normalizedParentTag || tag.startsWith(normalizedParentTag + '/')) {
-                    allTags.add(tag);
-                }
-            });
-        });
-
-        return Array.from(allTags);
     }
 
     getIcon(): string {
