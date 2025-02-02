@@ -30,7 +30,7 @@ export default class TimelinePlugin extends Plugin {
 		try {
 			this.registerView(
 				VIEW_TYPE_TIMELINE,
-				(leaf) => new TimelineView(leaf)
+				(leaf) => new TimelineView(leaf, this.settings)
 			);
 
 			// 添加文件菜单项

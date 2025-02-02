@@ -10,14 +10,9 @@ export class TimelineView extends ItemView {
     items: TimelineItem[] = [];
     currentTitle: string = ''; // 新增：存储当前标题
 
-    constructor(leaf: WorkspaceLeaf) {
+    constructor(leaf: WorkspaceLeaf, settings: TimelineSettings) {
         super(leaf);
-    }
-
-    async onload() {
-        super.onload();
-        // 从插件实例获取设置
-        const settings = (this.app as any).plugins.plugins['obsidian-generate-timeline'].settings;
+        // 通过构造函数注入设置，而不是直接访问插件实例
         this.timeline = new Timeline(this.app, settings);
     }
 

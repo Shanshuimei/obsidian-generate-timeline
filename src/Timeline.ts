@@ -60,6 +60,8 @@ export class Timeline {
 
     async generateFromTag(tag: string): Promise<TimelineItem[]> {
         const normalizedSearchTag = tag.replace('#', '').trim();
+        console.log('开始查找标签:', normalizedSearchTag);
+        
         const timelineItems: TimelineItem[] = [];
         const files = this.app.vault.getMarkdownFiles();
         
@@ -70,6 +72,7 @@ export class Timeline {
             // 分别检查 frontmatter 标签和内联标签
             if (metadata?.frontmatter?.tags) {
                 const frontmatterTags = metadata.frontmatter.tags;
+                console.log(`检查文件 ${file.path} 的 frontmatter 标签:`, frontmatterTags);
                 
                 // 检查不同格式的 frontmatter 标签
                 if (Array.isArray(frontmatterTags)) {
@@ -97,6 +100,7 @@ export class Timeline {
             const time = metadata?.frontmatter?.[this.settings.dateAttribute];
             
             if (hasTag && time) {
+                console.log('找到匹配的文件:', file.path);
                 timelineItems.push({
                     date: new Date(time),
                     title: file.basename,

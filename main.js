@@ -81,6 +81,7 @@ var Timeline = class {
   async generateFromTag(tag) {
     var _a, _b;
     const normalizedSearchTag = tag.replace("#", "").trim();
+    console.log("\u5F00\u59CB\u67E5\u627E\u6807\u7B7E:", normalizedSearchTag);
     const timelineItems = [];
     const files = this.app.vault.getMarkdownFiles();
     for (const file of files) {
@@ -88,6 +89,7 @@ var Timeline = class {
       let hasTag = false;
       if ((_a = metadata == null ? void 0 : metadata.frontmatter) == null ? void 0 : _a.tags) {
         const frontmatterTags = metadata.frontmatter.tags;
+        console.log(`\u68C0\u67E5\u6587\u4EF6 ${file.path} \u7684 frontmatter \u6807\u7B7E:`, frontmatterTags);
         if (Array.isArray(frontmatterTags)) {
           hasTag = frontmatterTags.some(
             (t) => String(t).trim().replace("#", "") === normalizedSearchTag
@@ -104,6 +106,7 @@ var Timeline = class {
       }
       const time = (_b = metadata == null ? void 0 : metadata.frontmatter) == null ? void 0 : _b[this.settings.dateAttribute];
       if (hasTag && time) {
+        console.log("\u627E\u5230\u5339\u914D\u7684\u6587\u4EF6:", file.path);
         timelineItems.push({
           date: new Date(time),
           title: file.basename,
@@ -156,16 +159,12 @@ generated_from: ${source.type}:${source.value}
 var VIEW_TYPE_TIMELINE = "timeline-view";
 var TimelineView = class extends import_obsidian2.ItemView {
   // 新增：存储当前标题
-  constructor(leaf) {
+  constructor(leaf, settings) {
     super(leaf);
     __publicField(this, "timeline");
     __publicField(this, "settings");
     __publicField(this, "items", []);
     __publicField(this, "currentTitle", "");
-  }
-  async onload() {
-    super.onload();
-    const settings = this.app.plugins.plugins["obsidian-generate-timeline"].settings;
     this.timeline = new Timeline(this.app, settings);
   }
   getViewType() {
@@ -404,7 +403,7 @@ var TimelinePlugin = class extends import_obsidian5.Plugin {
     try {
       this.registerView(
         VIEW_TYPE_TIMELINE,
-        (leaf) => new TimelineView(leaf)
+        (leaf) => new TimelineView(leaf, this.settings)
       );
       this.registerEvent(
         this.app.workspace.on("file-menu", (menu, abstractFile) => {
