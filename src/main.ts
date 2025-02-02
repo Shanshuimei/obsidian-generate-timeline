@@ -97,8 +97,14 @@ export default class TimelinePlugin extends Plugin {
 					try {
 						const folderPath = await this.selectFolder();
 						if (folderPath) {
+							const folder = this.app.vault.getAbstractFileByPath(folderPath);
+							
+							if (!(folder instanceof TFolder)) {
+								throw new Error(`Invalid folder path: ${folderPath}`);
+							}
+
 							const timeline = new Timeline(this.app, this.settings);
-							const items = await timeline.generateFromFolder(this.app.vault.getAbstractFileByPath(folderPath) as TFolder);
+							const items = await timeline.generateFromFolder(folder);
 							const content = await timeline.generateTimelineMarkdown(items, `Timeline - ${folderPath}`, { type: 'folder', value: folderPath });
 							
 							// 创建并打开文件
