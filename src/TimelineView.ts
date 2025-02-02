@@ -4,15 +4,26 @@ import { TimelineSettings } from './TimelineSettings';
 
 export const VIEW_TYPE_TIMELINE = 'timeline-view';
 
+// 提取常量类名
+const CLASS_TIMELINE_HEADER = 'timeline-header';
+const CLASS_TIMELINE_CONTAINER = 'timeline-container';
+const CLASS_TIMELINE_LINE = 'timeline-line';
+const CLASS_TIMELINE_ERA = 'timeline-era';
+const CLASS_TIMELINE_ERA_TITLE = 'timeline-era-title';
+const CLASS_TIMELINE_ITEM = 'timeline-item';
+const CLASS_TIMELINE_CARD = 'timeline-card';
+const CLASS_TIMELINE_DATE = 'timeline-date';
+const CLASS_TIMELINE_TITLE = 'timeline-title';
+const CLASS_TIMELINE_PREVIEW = 'timeline-preview';
+
 export class TimelineView extends ItemView {
     private timeline: Timeline;
     private settings: TimelineSettings;
     items: TimelineItem[] = [];
-    currentTitle: string = ''; // 新增：存储当前标题
+    currentTitle: string = '';
 
     constructor(leaf: WorkspaceLeaf, settings: TimelineSettings) {
         super(leaf);
-        // 通过构造函数注入设置，而不是直接访问插件实例
         this.timeline = new Timeline(this.app, settings);
     }
 
@@ -25,25 +36,19 @@ export class TimelineView extends ItemView {
     }
 
     async onOpen() {
-        await this.render();
+        try {
+            await this.render();
+        } catch (error) {
+            new Notice('时间轴视图渲染失败');
+        }
     }
 
-    async render() {
-        const container = this.containerEl.children[1];
-        container.empty();
-        
-        // 添加标题显示
-        if (this.currentTitle) {
-            const titleContainer = container.createEl('div', { cls: 'timeline-header' });
-            titleContainer.createEl('h2', { text: this.currentTitle });
-        }
-        
-        const timelineContainer = container.createEl('div', { cls: 'timeline-container' });
-        
-        // 创建时间轴线容器
-        const timelineLine = timelineContainer.createEl('div', { cls: 'timeline-line' });
+    private renderTitle(container: HTMLElement) {
+        const titleContainer = container.createEl('div', { cls: CLASS_TIMELINE_HEADER });
+        titleContainer.createEl('h2', { text: this.currentTitle });
+    }
 
-        // 按年份分组
+    private groupItemsByYear(): Map<number, TimelineItem[]> {
         const itemsByYear = new Map<number, TimelineItem[]>();
         this.items.forEach(item => {
             const year = item.date.getFullYear();
@@ -52,65 +57,69 @@ export class TimelineView extends ItemView {
             }
             itemsByYear.get(year)?.push(item);
         });
+        return itemsByYear;
+    }
 
-        // 渲染每个时间段
+    private renderItem(container: HTMLElement, item: TimelineItem, index: number, itemsLength: number) {
+        const itemEl = container.createEl('div', { 
+            cls: `${CLASS_TIMELINE_ITEM}${this.getItemClasses(index, itemsLength)}` 
+        });
+        
+        const card = itemEl.createEl('div', { cls: CLASS_TIMELINE_CARD });
+
+        card.createEl('div', { 
+            cls: CLASS_TIMELINE_DATE, 
+            text: item.date.toLocaleDateString('zh-CN') 
+        });
+
+        const titleEl = card.createEl('div', { cls: CLASS_TIMELINE_TITLE });
+        titleEl.textContent = item.title;
+
+        if (item.preview) {
+            const previewEl = card.createEl('div', { cls: CLASS_TIMELINE_PREVIEW });
+            previewEl.textContent = item.preview;
+        }
+
+        titleEl.addEventListener('click', async () => {
+            const file = this.app.vault.getAbstractFileByPath(item.path);
+            if (file instanceof TFile) {
+                await this.app.workspace.getLeaf().openFile(file);
+            }
+        });
+    }
+
+    private getItemClasses(index: number, itemsLength: number): string {
+        return (index === 0 ? ' first-item' : '') + 
+               (index === itemsLength - 1 ? ' last-item' : '');
+    }
+
+    private renderEra(container: HTMLElement, year: number, items: TimelineItem[]) {
+        const era = container.createEl('div', { cls: CLASS_TIMELINE_ERA });
+        era.createEl('div', { cls: CLASS_TIMELINE_ERA_TITLE, text: `${year}` });
+        items.forEach((item, index) => this.renderItem(era, item, index, items.length));
+    }
+
+    async render() {
+        const container = this.containerEl.children[1] as HTMLElement;
+        container.empty();
+        
+        if (this.currentTitle) {
+            this.renderTitle(container);
+        }
+        
+        const timelineContainer = container.createEl('div', { cls: CLASS_TIMELINE_CONTAINER });
+        timelineContainer.createEl('div', { cls: CLASS_TIMELINE_LINE });
+
+        const itemsByYear = this.groupItemsByYear();
         Array.from(itemsByYear.entries())
             .sort(([yearA], [yearB]) => yearB - yearA)
-            .forEach(([year, items]) => {
-                const era = timelineContainer.createEl('div', { cls: 'timeline-era' });
-                
-                // 创建年份标题
-                era.createEl('div', { 
-                    cls: 'timeline-era-title',
-                    text: `${year}`
-                });
-
-                // 渲染该年份的所有项目
-                items.forEach((item, index) => {
-                    const itemEl = era.createEl('div', { 
-                        cls: 'timeline-item' + 
-                             (index === 0 ? ' first-item' : '') + 
-                             (index === items.length - 1 ? ' last-item' : '')
-                    });
-
-                    // 创建内容卡片
-                    const card = itemEl.createEl('div', { cls: 'timeline-card' });
-
-                    // 日期
-                    card.createEl('div', { 
-                        cls: 'timeline-date',
-                        text: item.date.toLocaleDateString('zh-CN')
-                    });
-
-                    // 标题
-                    const titleEl = card.createEl('div', { 
-                        cls: 'timeline-title'
-                    });
-                    titleEl.innerHTML = item.title;
-
-                    // 预览内容
-                    if (item.preview) {
-                        const previewEl = card.createEl('div', { 
-                            cls: 'timeline-preview'
-                        });
-                        previewEl.innerHTML = item.preview;
-                    }
-
-                    // 点击事件
-                    titleEl.addEventListener('click', async () => {
-                        const file = this.app.vault.getAbstractFileByPath(item.path);
-                        if (file instanceof TFile) {
-                            await this.app.workspace.getLeaf().openFile(file);
-                        }
-                    });
-                });
-            });
+            .forEach(([year, items]) => this.renderEra(timelineContainer, year, items));
     }
 
     async updateFromFolder(folderPath: string) {
         const folder = this.app.vault.getAbstractFileByPath(folderPath) as TFolder;
         if (folder) {
-            this.currentTitle = `📂 ${folder.name}`; // 设置文件夹标题
+            this.currentTitle = `📂 ${folder.name}`;
             this.items = await this.timeline.generateFromFolder(folder);
             await this.render();
         }
@@ -119,8 +128,7 @@ export class TimelineView extends ItemView {
     async updateFromTag(tag: string) {
         try {
             this.currentTitle = `🏷️ ${tag}`;
-            const items = await this.timeline.generateFromTag(tag);
-            this.items = items;
+            this.items = await this.timeline.generateFromTag(tag);
             
             if (this.items.length === 0) {
                 new Notice(`没有找到包含标签 #${tag} 及其子标签的文件`);
@@ -135,6 +143,6 @@ export class TimelineView extends ItemView {
     }
 
     getIcon(): string {
-        return 'history'; // 或者使用 'clock', 'alarm-clock' 等
+        return 'history';
     }
 }

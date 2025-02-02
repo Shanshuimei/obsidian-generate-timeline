@@ -105,6 +105,13 @@ export default class TimelinePlugin extends Plugin {
 							const { folderPath: targetFolder, fileName } = await this.createNestedFolders(folderPath);
 							const finalFileName = this.generateFileName(fileName || folderPath.split('/').pop() || '');
 							const filePath = `${targetFolder}/${finalFileName}.md`;
+							
+							// 检查文件是否存在,如果存在则删除
+							const existingFile = this.app.vault.getAbstractFileByPath(filePath);
+							if (existingFile) {
+								await this.app.vault.delete(existingFile);
+							}
+							
 							const file = await this.app.vault.create(filePath, content);
 							await this.app.workspace.getLeaf().openFile(file);
 						}
@@ -282,6 +289,12 @@ export default class TimelinePlugin extends Plugin {
 			const { folderPath, fileName } = await this.createNestedFolders(tagPath);
 			const finalFileName = this.generateFileName(fileName || '');
 			const filePath = `${folderPath}/${finalFileName}.md`;
+
+			// 检查文件是否存在,如果存在则删除
+			const existingFile = this.app.vault.getAbstractFileByPath(filePath);
+			if (existingFile) {
+				await this.app.vault.delete(existingFile);
+			}
 			
 			const timeline = new Timeline(this.app, this.settings);
 			const items = await timeline.generateFromTag(tag);
