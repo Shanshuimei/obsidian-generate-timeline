@@ -101,10 +101,14 @@ var Timeline = class {
     const normalizedTag = tag.replace(/^#/, "");
     for (const file of allFiles) {
       const cache = this.app.metadataCache.getFileCache(file);
-      if (!(cache == null ? void 0 : cache.tags))
+      if (!cache)
         continue;
-      const hasMatchingTag = cache.tags.some((tagObj) => {
+      const hasMatchingTag = cache.tags && cache.tags.some((tagObj) => {
         const fileTag = tagObj.tag.replace(/^#/, "");
+        return fileTag === normalizedTag || // 完全匹配
+        fileTag.startsWith(normalizedTag + "/");
+      }) || cache.frontmatter && cache.frontmatter.tags && cache.frontmatter.tags.some((frontmatterTag) => {
+        const fileTag = frontmatterTag.replace(/^#/, "");
         return fileTag === normalizedTag || // 完全匹配
         fileTag.startsWith(normalizedTag + "/");
       });
@@ -227,15 +231,6 @@ var TimelineView = class extends import_obsidian2.ItemView {
         });
       });
     });
-  }
-  async ensureTimelineFolder() {
-    const timelineFolderPath = "timelines";
-    const existingFolder = this.app.vault.getAbstractFileByPath(timelineFolderPath);
-    if (existingFolder instanceof import_obsidian2.TFolder) {
-      return existingFolder;
-    }
-    await this.app.vault.createFolder(timelineFolderPath);
-    return this.app.vault.getAbstractFileByPath(timelineFolderPath);
   }
   async updateFromFolder(folderPath) {
     const folder = this.app.vault.getAbstractFileByPath(folderPath);

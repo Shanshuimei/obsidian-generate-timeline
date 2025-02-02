@@ -110,10 +110,6 @@ export class Timeline {
         // 按日期排序
         return this.sortItemsByDate(items);
     }
-        
-        // 按日期排序
-        return this.sortItemsByDate(items);
-    }
 
     async generateTimelineMarkdown(items: TimelineItem[], title: string, source: { type: 'tag' | 'folder', value: string }): Promise<string> {
         let markdown = `---\ngenerated_from: ${source.type}:${source.value}\n---\n\n`;
