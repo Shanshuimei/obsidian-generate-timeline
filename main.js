@@ -557,9 +557,18 @@ var TimelinePlugin = class extends import_obsidian5.Plugin {
     document.head.appendChild(style);
   }
   async createNestedFolders(tagPath) {
+    const rootPath = "timelines";
+    if (!this.app.vault.getAbstractFileByPath(rootPath)) {
+      try {
+        await this.app.vault.createFolder(rootPath);
+      } catch (error) {
+        new import_obsidian5.Notice(`\u521B\u5EFA\u6839\u76EE\u5F55\u5931\u8D25: ${rootPath}`);
+        throw error;
+      }
+    }
     const parts = tagPath.split("/");
     const fileName = parts.pop();
-    let currentPath = "timelines";
+    let currentPath = rootPath;
     for (const part of parts) {
       currentPath = (0, import_obsidian5.normalizePath)(`${currentPath}/${part}`);
       const folder = this.app.vault.getAbstractFileByPath(currentPath);

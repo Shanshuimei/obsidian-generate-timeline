@@ -237,27 +237,38 @@ export default class TimelinePlugin extends Plugin {
 	}
 
 	async createNestedFolders(tagPath: string) {
-		// 将路径分割为文件夹部分和文件名部分
-		const parts = tagPath.split('/');
-		const fileName = parts.pop(); // 移除最后一个部分作为文件名
-		let currentPath = 'timelines';
-
-		// 为每个父文件夹创建目录
-		for (const part of parts) {
-			currentPath = normalizePath(`${currentPath}/${part}`);
-			const folder = this.app.vault.getAbstractFileByPath(currentPath);
-			if (!folder) {
+			// 检查并创建根目录
+			const rootPath = 'timelines';
+			if (!this.app.vault.getAbstractFileByPath(rootPath)) {
 				try {
-					await this.app.vault.createFolder(currentPath);
+					await this.app.vault.createFolder(rootPath);
 				} catch (error) {
-					new Notice(`创建文件夹失败: ${currentPath}`);
+					new Notice(`创建根目录失败: ${rootPath}`);
 					throw error;
 				}
 			}
+		
+			// 将路径分割为文件夹部分和文件名部分
+			const parts = tagPath.split('/');
+			const fileName = parts.pop(); // 移除最后一个部分作为文件名
+			let currentPath = rootPath;
+		
+			// 为每个父文件夹创建目录
+			for (const part of parts) {
+				currentPath = normalizePath(`${currentPath}/${part}`);
+				const folder = this.app.vault.getAbstractFileByPath(currentPath);
+				if (!folder) {
+					try {
+						await this.app.vault.createFolder(currentPath);
+					} catch (error) {
+						new Notice(`创建文件夹失败: ${currentPath}`);
+						throw error;
+					}
+				}
+			}
+		
+			return { folderPath: currentPath, fileName };
 		}
-
-		return { folderPath: currentPath, fileName };
-	}
 
 	generateFileName(baseName: string): string {
 		const prefix = this.settings.fileNamePrefix || '';
