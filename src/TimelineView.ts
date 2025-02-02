@@ -107,19 +107,6 @@ export class TimelineView extends ItemView {
             });
     }
 
-    private async ensureTimelineFolder(): Promise<TFolder> {
-        const timelineFolderPath = 'timelines';
-        const existingFolder = this.app.vault.getAbstractFileByPath(timelineFolderPath);
-        
-        if (existingFolder instanceof TFolder) {
-            return existingFolder;
-        }
-        
-        // 如果文件夹不存在，创建它
-        await this.app.vault.createFolder(timelineFolderPath);
-        return this.app.vault.getAbstractFileByPath(timelineFolderPath) as TFolder;
-    }
-
     async updateFromFolder(folderPath: string) {
         const folder = this.app.vault.getAbstractFileByPath(folderPath) as TFolder;
         if (folder) {
