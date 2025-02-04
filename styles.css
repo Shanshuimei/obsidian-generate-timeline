@@ -8,6 +8,9 @@ If your plugin does not need CSS, delete this file.
 */
 
 .timeline-container {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
     padding: 20px 20px 20px 100px;
     position: relative;
 }
