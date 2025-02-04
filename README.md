@@ -22,9 +22,8 @@
    - This plug-in generates a timeline while generating an md file that links all related files in chronological order.
 ## Installation
 1. Please install the `Update time on edit` plugin before installing this plugin.
-2. Download the `main.js`, `manifest.json`, and `styles.css` files in the release.
-3. Create a new `obsidian-generate-timeline` folder under the `\.obsidian \ plugins` folder and copy or move all `main.js`, `manifest.json` and `styles.css` files to the `obsidian-generate-timeline` folder.
-4. Open `Generate timeline` in the obsidian installed plugins.
+2. Download any version of the compressed folder, unzip it and copy or move it to the `\. obsidian \ plugins` folder.
+3. Open `Generate timeline` in the obsidian installed plugins.
 ## How to use
 1. Generate Timeline Based on Folder
 	- Open the Command Palette, click Generate Timeline: Generate Timeline from Folder, and select the folder you want to generate the timeline for. This will create both a timeline Markdown file and a timeline view.
