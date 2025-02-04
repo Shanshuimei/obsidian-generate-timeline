@@ -6,7 +6,7 @@
     <a href="https://github.com/Shanshuimei/obsidian-generate-timeline/stargazers"><img src="https://img.shields.io/github/stars/Shanshuimei/obsidian-generate-timeline?colorA=363a4f&colorB=e0ac00&style=for-the-badge" alt="GitHub star count"></a>
     <a href="https://github.com/Shanshuimei/obsidian-generate-timeline/issues"><img src="https://img.shields.io/github/issues/Shanshuimei/obsidian-generate-timeline?colorA=363a4f&colorB=e93147&style=for-the-badge" alt="Open issues on GitHub"></a>
     <a href="https://github.com/Shanshuimei/obsidian-generate-timeline/contributors"><img src="https://img.shields.io/github/contributors/Shanshuimei/obsidian-generate-timeline?colorA=363a4f&colorB=08b94e&style=for-the-badge" alt="List of contributors"></a>
-    <a href="./LICENSE"><img src="https://img.shields.io/static/v1.svg?style=for-the-badge&label=License&message=GPL-3.0&colorA=363a4f&colorB=b7bdf8" alt="GPL-3.0 license"/></a>
+    <a href="./LICENCE"><img src="https://img.shields.io/static/v1.svg?style=for-the-badge&label=License&message=GPL-3.0&colorA=363a4f&colorB=b7bdf8" alt="GPL-3.0 license"/></a>
     <br/><br/>
     <b>Generate Timeline</b> is a plugin developed for the Obsidian to help users generate timelines based on folders or tags. With this plugin, users can easily view and manage the content of notes in chronological order. 
 </p>
