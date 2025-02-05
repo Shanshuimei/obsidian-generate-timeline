@@ -93,7 +93,8 @@ export class Timeline {
                 const fileTag = tagObj.tag.replace(/^#/, '');
                 return fileTag === normalizedTag || // 完全匹配
                        fileTag.startsWith(normalizedTag + '/'); // 子标签匹配
-            })) || (cache.frontmatter && cache.frontmatter.tags && cache.frontmatter.tags.some((frontmatterTag: string) => {
+            })) || (cache.frontmatter?.tags && Array.isArray(cache.frontmatter.tags) && cache.frontmatter.tags.some((frontmatterTag: string | unknown) => {
+                if (typeof frontmatterTag !== 'string') return false;
                 const fileTag = frontmatterTag.replace(/^#/, '');
                 return fileTag === normalizedTag || // 完全匹配
                        fileTag.startsWith(normalizedTag + '/'); // 子标签匹配

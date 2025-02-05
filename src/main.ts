@@ -223,13 +223,6 @@ export default class TimelinePlugin extends Plugin {
 				background: ${this.settings.lineColor} !important;
 			}
 			
-			.timeline-item::before {
-				width: ${this.settings.nodeSize}px !important;
-				height: ${this.settings.nodeSize}px !important;
-				border-color: ${this.settings.nodeColor} !important;
-				left: ${-(this.settings.nodeSize/2 + 6)}px !important;
-			}
-			
 			.timeline-item::after {
 				background: ${this.settings.lineColor} !important;
 			}
@@ -368,36 +361,6 @@ class TimelineSettingTab extends PluginSettingTab {
 				.onChange(async (value) => {
 					if (value) {
 						this.plugin.settings.lineColor = value;
-						await this.plugin.saveSettings();
-					}
-				}));
-
-		new Setting(containerEl)
-			.setName('节点大小')
-			.setDesc('设置时间节点的大小（像素）')
-			.addSlider(slider => slider
-				.setLimits(8, 32, 2)
-				.setValue(this.plugin.settings.nodeSize)
-				.onChange(async (value) => {
-					this.plugin.settings.nodeSize = value;
-					await this.plugin.saveSettings();
-				}));
-
-		new Setting(containerEl)
-			.setName('节点颜色')
-			.setDesc('设置时间节点的颜色')
-			.addColorPicker(color => color
-				.setValue(this.plugin.settings.nodeColor)
-				.onChange(async (value) => {
-					this.plugin.settings.nodeColor = value;
-					await this.plugin.saveSettings();
-				}))
-			.addText(text => text
-				.setPlaceholder('点击左侧色盘选择颜色')
-				.setValue('')
-				.onChange(async (value) => {
-					if (value) {
-						this.plugin.settings.nodeColor = value;
 						await this.plugin.saveSettings();
 					}
 				}));

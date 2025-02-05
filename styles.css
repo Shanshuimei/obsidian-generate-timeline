@@ -11,7 +11,6 @@ If your plugin does not need CSS, delete this file.
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
-    padding: 20px 20px 20px 100px;
     position: relative;
 }
 
@@ -23,7 +22,7 @@ If your plugin does not need CSS, delete this file.
 /* 时间轴线 */
 .timeline-line {
     position: absolute;
-    left: 50px;
+    left: 10%;
     top: 80px; /* 从第一个项目开始 */
     bottom: 20px; /* 到最后一个项目结束 */
     width: 2px;
@@ -51,15 +50,13 @@ If your plugin does not need CSS, delete this file.
 /* 时间轴项目 */
 .timeline-item {
     position: relative;
-    margin: 30px 0;
-    padding-left: 30px;
 }
 
 /* 时间节点圆点 */
 .timeline-item::before {
     content: '';
     position: absolute;
-    left: -8px;
+    left: 20%;
     top: 50%;
     width: 16px;
     height: 16px;
@@ -74,9 +71,9 @@ If your plugin does not need CSS, delete this file.
 .timeline-item::after {
     content: '';
     position: absolute;
-    left: -50px;
+    left: 10%;
+    right: 80%;
     top: 50%;
-    width: 42px;
     height: 2px;
     background: var(--interactive-accent);
     transform: translateY(-50%);
@@ -86,7 +83,7 @@ If your plugin does not need CSS, delete this file.
 .timeline-card {
     background: var(--background-primary-alt);
     border-radius: 8px;
-    padding: 15px;
+    padding: 0px 15px 0px 30%;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s, box-shadow 0.2s;
 }
