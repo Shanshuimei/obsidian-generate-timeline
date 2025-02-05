@@ -23,8 +23,8 @@ If your plugin does not need CSS, delete this file.
 .timeline-line {
     position: absolute;
     left: 10%;
-    top: 80px; /* 从第一个项目开始 */
-    bottom: 20px; /* 到最后一个项目结束 */
+    top: 60px; /* 从第一个项目开始 */
+    bottom: 30px; /* 到最后一个项目结束 */
     width: 2px;
     background: var(--interactive-accent);
 }
@@ -52,27 +52,12 @@ If your plugin does not need CSS, delete this file.
     position: relative;
 }
 
-/* 时间节点圆点 */
-.timeline-item::before {
-    content: '';
-    position: absolute;
-    left: 20%;
-    top: 50%;
-    width: 16px;
-    height: 16px;
-    background: var(--background-primary);
-    border: 2px solid var(--interactive-accent);
-    border-radius: 50%;
-    transform: translateY(-50%);
-    z-index: 2;
-}
-
 /* 连接到主时间轴的横线 */
 .timeline-item::after {
     content: '';
     position: absolute;
     left: 10%;
-    right: 80%;
+    width: 10%; 
     top: 50%;
     height: 2px;
     background: var(--interactive-accent);
@@ -81,9 +66,13 @@ If your plugin does not need CSS, delete this file.
 
 /* 内容卡片 */
 .timeline-card {
+    position: relative;
+    z-index: 2;             /* 确保卡片在横线上方 */
     background: var(--background-primary-alt);
+    margin-left: 20%;
+    margin-right: 10%;
     border-radius: 8px;
-    padding: 0px 15px 0px 30%;
+    padding : 15px 15px 15px 15px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s, box-shadow 0.2s;
 }
