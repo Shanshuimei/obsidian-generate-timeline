@@ -177,12 +177,14 @@ export default class TimelinePlugin extends Plugin {
 		return await modal.openAndGetValue();
 	}
 
-	async activateView() {
+	async activateView(position: 'left' | 'right' = this.settings.defaultPosition) {
 		const { workspace } = this.app;
 		let leaf = workspace.getLeavesOfType(VIEW_TYPE_TIMELINE)[0];
 		
 		if (!leaf) {
-			const newLeaf = workspace.getRightLeaf(false);
+			const newLeaf = position === 'left' 
+				? workspace.getLeftLeaf(false)
+				: workspace.getRightLeaf(false);
 			if (newLeaf) {
 				leaf = newLeaf;
 				await leaf.setViewState({ type: VIEW_TYPE_TIMELINE });
@@ -441,5 +443,18 @@ class TimelineSettingTab extends PluginSettingTab {
 					this.plugin.settings.fileNameSuffix = value;
 					await this.plugin.saveSettings();
 				}));
+
+		new Setting(containerEl)
+			.setName('默认位置')
+			.setDesc('选择时间轴视图在左侧还是右侧边栏显示')
+			.addDropdown(dropdown => dropdown
+				.addOption('left', '左侧边栏')
+				.addOption('right', '右侧边栏')
+				.setValue(this.plugin.settings.defaultPosition)
+				.onChange(async (value) => {
+					this.plugin.settings.defaultPosition = value as 'left' | 'right';
+					await this.plugin.saveSettings();
+				})
+			);
 	}
 }
