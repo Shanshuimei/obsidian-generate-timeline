@@ -53,7 +53,7 @@ export default class TimelinePlugin extends Plugin {
 									.setTitle('打开时间轴视图')
 									.setIcon('clock')
 									.onClick(async () => {
-										await this.activateView();
+										await this.activateView(this.settings.defaultPosition);
 										const view = this.getTimelineView();
 										if (view) {
 											if (type === 'folder') {
@@ -77,7 +77,7 @@ export default class TimelinePlugin extends Plugin {
 					try {
 						const folderPath = await this.selectFolder();
 						if (folderPath) {
-							await this.activateView();
+							await this.activateView(this.settings.defaultPosition);
 							const view = this.getTimelineView();
 							if (view) {
 								await view.updateFromFolder(folderPath);
@@ -135,7 +135,7 @@ export default class TimelinePlugin extends Plugin {
 					try {
 						const tag = await this.selectTag();
 						if (tag) {
-							await this.activateView();
+							await this.activateView(this.settings.defaultPosition);
 							const view = this.getTimelineView();
 							if (view) {
 								await view.updateFromTag(tag);
@@ -179,24 +179,31 @@ export default class TimelinePlugin extends Plugin {
 
 	async activateView(position: 'left' | 'right' = this.settings.defaultPosition) {
 		const { workspace } = this.app;
-		let leaf = workspace.getLeavesOfType(VIEW_TYPE_TIMELINE)[0];
 		
-		if (!leaf) {
-			const newLeaf = position === 'left' 
-				? workspace.getLeftLeaf(false)
-				: workspace.getRightLeaf(false);
-			if (newLeaf) {
-				leaf = newLeaf;
-				await leaf.setViewState({ type: VIEW_TYPE_TIMELINE });
-			}
-		}
+		// 获取所有时间轴视图的叶子节点
+		const leaves = workspace.getLeavesOfType(VIEW_TYPE_TIMELINE);
 		
-		if (leaf) {
-			workspace.revealLeaf(leaf);
-			return leaf;
+		// 关闭所有现有视图（强制重新创建）
+		for (const leaf of leaves) {
+			await leaf.detach();
 		}
-		return null;
+
+		// 创建新视图
+		const newLeaf = position === 'left' 
+			? workspace.getLeftLeaf(false)
+			: workspace.getRightLeaf(false);
+		
+		if (!newLeaf) {
+			new Notice('无法创建时间轴视图：请检查侧边栏空间');
+			return null;
+		}
+
+		await newLeaf.setViewState({ type: VIEW_TYPE_TIMELINE });
+		workspace.revealLeaf(newLeaf);
+		
+		return newLeaf;
 	}
+	  
 
 	getTimelineView(): TimelineView | null {
 		const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_TIMELINE);
