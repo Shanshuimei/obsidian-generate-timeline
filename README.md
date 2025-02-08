@@ -7,6 +7,7 @@
     <a href="https://github.com/Shanshuimei/obsidian-generate-timeline/issues"><img src="https://img.shields.io/github/issues/Shanshuimei/obsidian-generate-timeline?colorA=363a4f&colorB=e93147&style=for-the-badge" alt="Open issues on GitHub"></a>
     <a href="https://github.com/Shanshuimei/obsidian-generate-timeline/contributors"><img src="https://img.shields.io/github/contributors/Shanshuimei/obsidian-generate-timeline?colorA=363a4f&colorB=08b94e&style=for-the-badge" alt="List of contributors"></a>
     <a href="./LICENCE"><img src="https://img.shields.io/static/v1.svg?style=for-the-badge&label=License&message=MIT&colorA=363a4f&colorB=b7bdf8" alt="MIT license"/></a>
+    <a href="https://github.com/Shanshuimei/obsidian-generate-timeline/releases"><img src="https://img.shields.io/github/downloads/Shanshuimei/obsidian-generate-timeline/total?colorA=363a4f&colorB=1a72f5&style=for-the-badge" alt="Total downloads"></a>
     <br/><br/>
     <b>Generate Timeline</b> is a plugin developed for the Obsidian to help users generate timelines based on folders or tags. With this plugin, users can easily view and manage the content of notes in chronological order.   
 </p>
