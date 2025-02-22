@@ -183,9 +183,9 @@ export default class TimelinePlugin extends Plugin {
 		// 获取所有时间轴视图的叶子节点
 		const leaves = workspace.getLeavesOfType(VIEW_TYPE_TIMELINE);
 		
-		// 关闭所有现有视图（强制重新创建）
+		// 关闭所有现有视图（使用 setViewState 重新创建）
 		for (const leaf of leaves) {
-			await leaf.detach();
+			await leaf.setViewState({ type: 'empty' });
 		}
 
 		// 创建新视图
@@ -329,8 +329,6 @@ class TimelineSettingTab extends PluginSettingTab {
 	display(): void {
 		const {containerEl} = this;
 		containerEl.empty();
-
-		containerEl.createEl('h2', {text: '时间轴设置'});
 
 		new Setting(containerEl)
 			.setName('重置设置')
