@@ -57,7 +57,7 @@ If your plugin does not need CSS, delete this file.
     content: '';
     position: absolute;
     left: 10%;
-    width: 10%; 
+    width: 15%; 
     top: 50%;
     height: 2px;
     background: var(--interactive-accent);
