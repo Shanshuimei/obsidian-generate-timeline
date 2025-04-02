@@ -250,12 +250,13 @@ export default class TimelinePlugin extends Plugin {
 		// 获取所有时间轴视图的叶子节点
 		const leaves = workspace.getLeavesOfType(VIEW_TYPE_TIMELINE);
 		
-		// 关闭所有现有视图（使用 setViewState 重新创建）
-		for (const leaf of leaves) {
-			await leaf.setViewState({ type: 'empty' });
+		// 如果已存在时间轴视图，直接使用第一个
+		if (leaves.length > 0) {
+			workspace.revealLeaf(leaves[0]);
+			return leaves[0];
 		}
 
-		// 创建新视图
+		// 不存在时创建新视图
 		const newLeaf = position === 'left' 
 			? workspace.getLeftLeaf(false)
 			: workspace.getRightLeaf(false);
@@ -270,7 +271,6 @@ export default class TimelinePlugin extends Plugin {
 		
 		return newLeaf;
 	}
-	  
 
 	getTimelineView(): TimelineView | null {
 		const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_TIMELINE);
@@ -530,5 +530,3 @@ class TimelineSettingTab extends PluginSettingTab {
 			);
 	}
 }
-
-
