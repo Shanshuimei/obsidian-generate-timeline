@@ -142,6 +142,26 @@ export class TimelineView extends ItemView {
         }
     }
 
+    async updateFromFile(filePath: string) {
+        try {
+            const file = this.app.vault.getAbstractFileByPath(filePath);
+            if (file && file instanceof TFile) {
+                this.currentTitle = `📄 ${file.basename}`;
+                this.items = await this.timeline.generateFromFileLinks(file);
+                
+                if (this.items.length === 0) {
+                    new Notice(`文件 ${file.basename} 中没有找到可用的链接或日期信息`);
+                    return;
+                }
+
+                await this.render();
+            }
+        } catch (error) {
+            new Notice('从文件生成时间轴失败');
+            console.error(error);
+        }
+    }
+
     getIcon(): string {
         return 'history';
     }

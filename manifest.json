@@ -1,7 +1,7 @@
 {
 	"id": "generate-timeline",
 	"name": "Generate Timeline",
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"minAppVersion": "0.15.0",
 	"description": "Generate timelines from tag or folder automatically by any time properties.",
 	"author": "Shanshuimei",

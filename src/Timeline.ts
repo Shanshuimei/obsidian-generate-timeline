@@ -42,6 +42,36 @@ export class Timeline {
         return items.sort((a, b) => b.date.getTime() - a.date.getTime());
     }
 
+    private extractLinkedFiles(content: string): TFile[] {
+        const linkedFiles: TFile[] = [];
+        const linkRegex = /\[\[([^\]]+)\]\]/g;
+        let match;
+        
+        while ((match = linkRegex.exec(content)) !== null) {
+            const linkPath = match[1].split('|')[0]; // 处理带别名的链接
+            const file = this.app.metadataCache.getFirstLinkpathDest(linkPath, '');
+            if (file && file instanceof TFile) {
+                linkedFiles.push(file);
+            }
+        }
+        return linkedFiles;
+    }
+
+    async generateFromFileLinks(file: TFile): Promise<TimelineItem[]> {
+        const content = await this.app.vault.cachedRead(file);
+        const linkedFiles = this.extractLinkedFiles(content);
+        const items: TimelineItem[] = [];
+        
+        for (const linkedFile of linkedFiles) {
+            const item = await this.createTimelineItem(linkedFile);
+            if (item) {
+                items.push(item);
+            }
+        }
+        
+        return this.sortItemsByDate(items);
+    }
+
     async generateFromFolder(folder: TFolder): Promise<TimelineItem[]> {
         if (folder.path === 'timelines') {
             return [];
@@ -112,7 +142,7 @@ export class Timeline {
         return this.sortItemsByDate(items);
     }
 
-    async generateTimelineMarkdown(items: TimelineItem[], title: string, source: { type: 'tag' | 'folder', value: string }): Promise<string> {
+    async generateTimelineMarkdown(items: TimelineItem[], title: string, source: { type: 'tag' | 'folder' | 'file', value: string }): Promise<string> {
         let markdown = `---\ngenerated_from: ${source.type}:${source.value}\n---\n\n`;
         markdown += `# ${title}\n\n`;
         

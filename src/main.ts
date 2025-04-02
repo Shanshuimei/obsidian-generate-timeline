@@ -12,6 +12,7 @@ import {
 import { TimelineView, VIEW_TYPE_TIMELINE } from './TimelineView';
 import { FolderSuggestModal } from './FolderSuggest';
 import { TagSuggestModal } from './TagSuggest';
+import { FileSuggestModal } from './FileSuggest';
 import { TimelineSettings, DEFAULT_SETTINGS } from './TimelineSettings';
 import { Timeline } from './Timeline';
 import { TFolder } from 'obsidian';
@@ -60,6 +61,8 @@ export default class TimelinePlugin extends Plugin {
 												await view.updateFromFolder(value);
 											} else if (type === 'tag') {
 												await view.updateFromTag(value);
+											} else if (type === 'file') {
+												await view.updateFromFile(value);
 											}
 										}
 									});
@@ -162,13 +165,77 @@ export default class TimelinePlugin extends Plugin {
 					}
 				}
 			});
+
+			// 从文件链接生成时间轴视图
+			this.addCommand({
+				id: 'generate-timeline-view-from-file-links',
+				name: '从文件链接生成时间轴视图',
+				callback: async () => {
+					try {
+						const file = await this.selectFile();
+						if (file) {
+							await this.activateView(this.settings.defaultPosition);
+							const view = this.getTimelineView();
+							if (view) {
+								const timeline = new Timeline(this.app, this.settings);
+								const items = await timeline.generateFromFileLinks(file);
+								view.items = items;
+								view.currentTitle = `🔗 ${file.basename} `;
+								await view.render();
+							}
+						}
+					} catch (error) {
+						console.error('从文件链接生成时间轴视图时出错:', error);
+					}
+				}
+			});
+
+			// 从文件链接生成时间轴文件
+			this.addCommand({
+				id: 'generate-timeline-file-from-file-links',
+				name: '从文件链接生成时间轴文件',
+				callback: async () => {
+					try {
+						const file = await this.selectFile();
+						if (file) {
+							const timeline = new Timeline(this.app, this.settings);
+							const items = await timeline.generateFromFileLinks(file);
+							const content = await timeline.generateTimelineMarkdown(
+								items, 
+								`Timeline - Links in ${file.basename}`, 
+								{ type: 'file', value: file.path }
+							);
+							
+							const { folderPath } = await this.createNestedFolders('linked-files');
+							const finalFileName = this.generateFileName(file.basename);
+							const filePath = `${folderPath}/${finalFileName}.md`;
+							
+							const existingFile = this.app.vault.getAbstractFileByPath(filePath);
+							if (existingFile) {
+								await this.app.vault.delete(existingFile);
+							}
+							
+							const newFile = await this.app.vault.create(filePath, content);
+							await this.app.workspace.getLeaf().openFile(newFile);
+						}
+					} catch (error) {
+						console.error('从文件链接生成时间轴文件时出错:', error);
+					}
+				}
+			});
+			
 		} catch (error) {
 			console.error('插件加载时出错:', error);
 		}
 	}
-
+	
 	async selectFolder(): Promise<string | null> {
 		const modal = new FolderSuggestModal(this.app);
+		return await modal.openAndGetValue();
+	}
+
+	async selectFile(): Promise<TFile | null> {
+		const modal = new FileSuggestModal(this.app);
 		return await modal.openAndGetValue();
 	}
 
@@ -463,3 +530,5 @@ class TimelineSettingTab extends PluginSettingTab {
 			);
 	}
 }
+
+
