@@ -1,7 +1,7 @@
 {
   "name": "generate-timeline",
-  "version": "1.2.0",
-  "description": "Generate timelines from tag or folder automatically by any time properties.",
+  "version": "1.2.1",
+  "description": "Generate timelines from tag, folder or file automatically by any time properties.",
   "main": "main.js",
   "type": "module",
   "scripts": {

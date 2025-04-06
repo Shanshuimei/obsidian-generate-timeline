@@ -9,6 +9,7 @@ import {
 	normalizePath,
 	Notice
 } from 'obsidian';
+import { I18nStrings, zhCN, enUS } from './i18n';
 import { TimelineView, VIEW_TYPE_TIMELINE } from './TimelineView';
 import { FolderSuggestModal } from './FolderSuggest';
 import { TagSuggestModal } from './TagSuggest';
@@ -19,9 +20,11 @@ import { TFolder } from 'obsidian';
 
 export default class TimelinePlugin extends Plugin {
 	settings: TimelineSettings;
+	i18n: I18nStrings;
 
 	async onload() {
 		await this.loadSettings();
+		this.i18n = this.settings.language === 'zh-CN' ? zhCN : enUS;
 		
 		// 添加设置标签页
 		this.addSettingTab(new TimelineSettingTab(this.app, this));
@@ -31,7 +34,7 @@ export default class TimelinePlugin extends Plugin {
 		try {
 			this.registerView(
 				VIEW_TYPE_TIMELINE,
-				(leaf) => new TimelineView(leaf, this.settings)
+				(leaf) => new TimelineView(leaf, this.settings, this.i18n)
 			);
 
 			// 添加文件菜单项
@@ -51,7 +54,7 @@ export default class TimelinePlugin extends Plugin {
 							
 							menu.addItem((item) => {
 								item
-									.setTitle('打开时间轴视图')
+									.setTitle(this.i18n.commands.openTimelineView)
 									.setIcon('clock')
 									.onClick(async () => {
 										await this.activateView(this.settings.defaultPosition);
@@ -75,7 +78,7 @@ export default class TimelinePlugin extends Plugin {
 			// 从文件夹生成时间轴视图
 			this.addCommand({
 				id: 'generate-timeline-view-from-folder',
-				name: '从文件夹生成时间轴视图',
+				name: this.i18n.commands.generateFromFolder,
 				callback: async () => {
 					try {
 						const folderPath = await this.selectFolder();
@@ -95,7 +98,7 @@ export default class TimelinePlugin extends Plugin {
 			// 从文件夹生成时间轴文件
 			this.addCommand({
 				id: 'generate-timeline-file-from-folder',
-				name: '从文件夹生成时间轴文件',
+				name: this.i18n.commands.generateFileFromFolder,
 				callback: async () => {
 					try {
 						const folderPath = await this.selectFolder();
@@ -133,7 +136,7 @@ export default class TimelinePlugin extends Plugin {
 			// 从标签生成时间轴视图
 			this.addCommand({
 				id: 'generate-timeline-view-from-tag',
-				name: '从标签生成时间轴视图',
+				name: this.i18n.commands.generateFromTag,
 				callback: async () => {
 					try {
 						const tag = await this.selectTag();
@@ -153,7 +156,7 @@ export default class TimelinePlugin extends Plugin {
 			// 从标签生成时间轴文件
 			this.addCommand({
 				id: 'generate-timeline-file-from-tag',
-				name: '从标签生成时间轴文件',
+				name: this.i18n.commands.generateFileFromTag,
 				callback: async () => {
 					try {
 						const tag = await this.selectTag();
@@ -169,7 +172,7 @@ export default class TimelinePlugin extends Plugin {
 			// 从文件链接生成时间轴视图
 			this.addCommand({
 				id: 'generate-timeline-view-from-file-links',
-				name: '从文件链接生成时间轴视图',
+				name: this.i18n.commands.generateFromFileLinks,
 				callback: async () => {
 					try {
 						const file = await this.selectFile();
@@ -193,7 +196,7 @@ export default class TimelinePlugin extends Plugin {
 			// 从文件链接生成时间轴文件
 			this.addCommand({
 				id: 'generate-timeline-file-from-file-links',
-				name: '从文件链接生成时间轴文件',
+				name: this.i18n.commands.generateFileFromFileLinks,
 				callback: async () => {
 					try {
 						const file = await this.selectFile();
@@ -398,10 +401,10 @@ class TimelineSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName('重置设置')
-			.setDesc('将所有设置恢复为默认值')
+			.setName(this.plugin.i18n.settings.resetSettings)
+			.setDesc(this.plugin.i18n.settings.resetSettingsDesc)
 			.addButton(button => button
-				.setButtonText('重置为默认值')
+				.setButtonText(this.plugin.i18n.settings.resetSettingsButton)
 				.onClick(async () => {
 					this.plugin.settings = Object.assign({}, DEFAULT_SETTINGS);
 					await this.plugin.saveSettings();
@@ -409,9 +412,25 @@ class TimelineSettingTab extends PluginSettingTab {
 					this.display();
 				}));
 
+		// 添加语言选择设置
 		new Setting(containerEl)
-			.setName('时间轴线宽度')
-			.setDesc('设置主时间轴线的宽度（像素）')
+			.setName(this.plugin.i18n.settings.language)
+			.setDesc(this.plugin.i18n.settings.languageDesc)
+			.addDropdown(dropdown => dropdown
+				.addOption('zh-CN', '中文')
+				.addOption('en-US', 'English')
+				.setValue(this.plugin.settings.language)
+				.onChange(async (value) => {
+					this.plugin.settings.language = value as 'zh-CN' | 'en-US';
+					this.plugin.i18n = value === 'zh-CN' ? zhCN : enUS;
+					await this.plugin.saveSettings();
+					// 重新显示设置面板以更新语言
+					this.display();
+				}));
+
+		new Setting(containerEl)
+			.setName(this.plugin.i18n.settings.lineWidth)
+			.setDesc(this.plugin.i18n.settings.lineWidthDesc)
 			.addSlider(slider => slider
 				.setLimits(1, 10, 1)
 				.setValue(this.plugin.settings.lineWidth)
@@ -421,8 +440,8 @@ class TimelineSettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('时间轴线颜色')
-			.setDesc('设置时间轴线的颜色')
+			.setName(this.plugin.i18n.settings.lineColor)
+			.setDesc(this.plugin.i18n.settings.lineColorDesc)
 			.addColorPicker(color => color
 				.setValue(this.plugin.settings.lineColor)
 				.onChange(async (value) => {
@@ -430,7 +449,7 @@ class TimelineSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}))
 			.addText(text => text
-				.setPlaceholder('点击左侧色盘选择颜色')
+				.setPlaceholder(this.plugin.i18n.settings.colorPickerPlaceholder)
 				.setValue('')
 				.onChange(async (value) => {
 					if (value) {
@@ -440,8 +459,8 @@ class TimelineSettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('项目间距')
-			.setDesc('设置时间轴项目之间的间距（像素）')
+			.setName(this.plugin.i18n.settings.itemSpacing)
+			.setDesc(this.plugin.i18n.settings.itemSpacingDesc)
 			.addSlider(slider => slider
 				.setLimits(10, 100, 5)
 				.setValue(this.plugin.settings.itemSpacing)
@@ -451,8 +470,8 @@ class TimelineSettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('卡片背景色')
-			.setDesc('设置内容卡片的背景颜色')
+			.setName(this.plugin.i18n.settings.cardBackground)
+			.setDesc(this.plugin.i18n.settings.cardBackgroundDesc)
 			.addColorPicker(color => color
 				.setValue(this.plugin.settings.cardBackground)
 				.onChange(async (value) => {
@@ -460,7 +479,7 @@ class TimelineSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}))
 			.addText(text => text
-				.setPlaceholder('点击左侧色盘选择颜色')
+				.setPlaceholder(this.plugin.i18n.settings.colorPickerPlaceholder)
 				.setValue('')
 				.onChange(async (value) => {
 					if (value) {
@@ -470,8 +489,8 @@ class TimelineSettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('动画持续时间')
-			.setDesc('设置悬停动画的持续时间（毫秒）')
+			.setName(this.plugin.i18n.settings.animationDuration)
+			.setDesc(this.plugin.i18n.settings.animationDurationDesc)
 			.addSlider(slider => slider
 				.setLimits(0, 1000, 50)
 				.setValue(this.plugin.settings.animationDuration)
@@ -480,36 +499,33 @@ class TimelineSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
-		// 在文件名设置前添加日期属性设置
 		new Setting(containerEl)
-			.setName('日期属性')
-			.setDesc('选择用于时间轴排序的 frontmatter 日期属性（如：created, updated, date 等）')
+			.setName(this.plugin.i18n.settings.dateAttribute)
+			.setDesc(this.plugin.i18n.settings.dateAttributeDesc)
 			.addText(text => text
-				.setPlaceholder('输入日期属性名')
+				.setPlaceholder('created')
 				.setValue(this.plugin.settings.dateAttribute)
 				.onChange(async (value) => {
 					this.plugin.settings.dateAttribute = value;
 					await this.plugin.saveSettings();
 				}));
 
-		// 添加文件名前缀设置
 		new Setting(containerEl)
-			.setName('文件名前缀')
-			.setDesc('设置生成的时间轴文件名前缀')
+			.setName(this.plugin.i18n.settings.fileNamePrefix)
+			.setDesc(this.plugin.i18n.settings.fileNamePrefixDesc)
 			.addText(text => text
-				.setPlaceholder('输入前缀')
+				.setPlaceholder('')
 				.setValue(this.plugin.settings.fileNamePrefix)
 				.onChange(async (value) => {
 					this.plugin.settings.fileNamePrefix = value;
 					await this.plugin.saveSettings();
 				}));
 
-		// 添加文件名后缀设置
 		new Setting(containerEl)
-			.setName('文件名后缀')
-			.setDesc('设置生成的时间轴文件名后缀')
+			.setName(this.plugin.i18n.settings.fileNameSuffix)
+			.setDesc(this.plugin.i18n.settings.fileNameSuffixDesc)
 			.addText(text => text
-				.setPlaceholder('输入后缀')
+				.setPlaceholder('')
 				.setValue(this.plugin.settings.fileNameSuffix)
 				.onChange(async (value) => {
 					this.plugin.settings.fileNameSuffix = value;
@@ -517,11 +533,11 @@ class TimelineSettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('默认位置')
-			.setDesc('选择时间轴视图在左侧还是右侧边栏显示')
+			.setName(this.plugin.i18n.settings.defaultPosition)
+			.setDesc(this.plugin.i18n.settings.defaultPositionDesc)
 			.addDropdown(dropdown => dropdown
-				.addOption('left', '左侧边栏')
-				.addOption('right', '右侧边栏')
+				.addOption('left', this.plugin.i18n.settings.leftSidebar)
+				.addOption('right', this.plugin.i18n.settings.rightSidebar)
 				.setValue(this.plugin.settings.defaultPosition)
 				.onChange(async (value) => {
 					this.plugin.settings.defaultPosition = value as 'left' | 'right';

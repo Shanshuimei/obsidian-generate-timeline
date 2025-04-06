@@ -7,7 +7,8 @@ export interface TimelineSettings {
     itemSpacing: number;        // 项目间距
     cardBackground: string;     // 卡片背景色
     animationDuration: number;  // 动画持续时间（毫秒）
-    defaultPosition: 'left' | 'right';  // 新增：时间轴视图默认位置
+    defaultPosition: 'left' | 'right';  // 时间轴视图默认位置
+    language: 'zh-CN' | 'en-US';  // 界面语言
 }
 
 // 使用 CSS 变量作为默认值
@@ -24,5 +25,6 @@ export const DEFAULT_SETTINGS: TimelineSettings = {
     dateAttribute: 'created',      // 默认使用 frontmatter 中的 date 属性作为时间轴排序依据
     fileNamePrefix: '',
     fileNameSuffix: '',
-    defaultPosition: 'right'  // 新增：默认在右侧边栏
+    defaultPosition: 'right',  // 默认在右侧边栏
+    language: 'zh-CN'  // 默认使用中文
 };

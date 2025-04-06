@@ -1,6 +1,7 @@
 import { ItemView, WorkspaceLeaf, TFolder, TFile, Notice, App } from 'obsidian';
 import { Timeline, TimelineItem } from './Timeline';
 import { TimelineSettings } from './TimelineSettings';
+import { I18nStrings } from './i18n';
 
 export const VIEW_TYPE_TIMELINE = 'timeline-view';
 
@@ -19,12 +20,15 @@ const CLASS_TIMELINE_PREVIEW = 'timeline-preview';
 export class TimelineView extends ItemView {
     private timeline: Timeline;
     private settings: TimelineSettings;
+    private i18n: I18nStrings;
     items: TimelineItem[] = [];
     currentTitle: string = '';
 
-    constructor(leaf: WorkspaceLeaf, settings: TimelineSettings) {
+    constructor(leaf: WorkspaceLeaf, settings: TimelineSettings, i18n: I18nStrings) {
         super(leaf);
         this.timeline = new Timeline(this.app, settings);
+        this.settings = settings;
+        this.i18n = i18n;
     }
 
     getViewType(): string {
@@ -32,14 +36,14 @@ export class TimelineView extends ItemView {
     }
 
     getDisplayText(): string {
-        return '时间轴视图';
+        return this.i18n.commands.openTimelineView;
     }
 
     async onOpen() {
         try {
             await this.render();
         } catch (error) {
-            new Notice('时间轴视图渲染失败');
+            new Notice(this.i18n.errors.renderFailed);
         }
     }
 
@@ -69,7 +73,7 @@ export class TimelineView extends ItemView {
 
         card.createEl('div', { 
             cls: CLASS_TIMELINE_DATE, 
-            text: item.date.toLocaleDateString('zh-CN') 
+            text: item.date.toLocaleDateString(this.settings.language === 'zh-CN' ? 'zh-CN' : 'en-US') 
         });
 
         const titleEl = card.createEl('div', { cls: CLASS_TIMELINE_TITLE });
@@ -131,7 +135,7 @@ export class TimelineView extends ItemView {
             this.items = await this.timeline.generateFromTag(tag);
             
             if (this.items.length === 0) {
-                new Notice(`没有找到包含标签 #${tag} 及其子标签的文件`);
+                new Notice(this.i18n.errors.noTaggedFiles.replace('{tag}', tag));
                 return;
             }
 
@@ -150,14 +154,14 @@ export class TimelineView extends ItemView {
                 this.items = await this.timeline.generateFromFileLinks(file);
                 
                 if (this.items.length === 0) {
-                    new Notice(`文件 ${file.basename} 中没有找到可用的链接或日期信息`);
+                    new Notice(this.i18n.errors.noFileLinks.replace('{filename}', file.basename));
                     return;
                 }
 
                 await this.render();
             }
         } catch (error) {
-            new Notice('从文件生成时间轴失败');
+            new Notice(this.i18n.errors.generateFileFailed);
             console.error(error);
         }
     }
