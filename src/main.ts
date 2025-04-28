@@ -457,8 +457,8 @@ class TimelineSettingTab extends PluginSettingTab {
 
 		// 添加里程碑值设置
 		new Setting(containerEl)
-			.setName(this.plugin.i18n.settings.milestoneValue) // TODO: Add i18n string
-			.setDesc(this.plugin.i18n.settings.milestoneValueDesc) // TODO: Add i18n string
+			.setName(this.plugin.i18n.settings.milestoneValue) 
+			.setDesc(this.plugin.i18n.settings.milestoneValueDesc)
 			.addText(text => text
 				.setPlaceholder('true or 1 (leave empty to match any value)')
 				.setValue(this.plugin.settings.milestoneValue)

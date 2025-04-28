@@ -18,22 +18,40 @@ export class Timeline {
         this.settings = settings;
     }
 
-    private async getFilePreview(file: TFile): Promise<string> {
+    private async getFilePreview(file: TFile, tag: string): Promise<string> {
         const content = await this.app.vault.cachedRead(file);
+        const normalizedTag = tag.replace(/^#/, ''); // 使用传入的 tag
+        
+        // 查找所有包含特定标签的行
+        const tagLines = content.split('\n').filter(line => {
+            // 精确匹配行内标签，避免匹配 frontmatter 中的 tags 数组
+            const tagRegex = new RegExp(`(^|\s)#${normalizedTag}(?=\s|$|[^\w\/])`); // 使用正向预查确保精确匹配标签
+            return tagRegex.test(line);
+        });
+        
+        // 如果有找到包含特定标签的行，则返回第一行
+        if (tagLines.length > 0) {
+            const firstTagLine = tagLines[0];
+            return firstTagLine.slice(0, 100) + (firstTagLine.length > 100 ? '...' : '');
+        }
+        
+        // 否则返回文件开头内容（去除 frontmatter）
         const previewContent = content.replace(/^---[\s\S]*?---/, '').trim();
-        return previewContent.slice(0, 100) + (previewContent.length > 100 ? '...' : '');
+        return previewContent.slice(0, 50) + (previewContent.length > 50 ? '...' : '');
     }
 
-    private async createTimelineItem(file: TFile): Promise<TimelineItem | null> {
+    private async createTimelineItem(file: TFile, tag?: string): Promise<TimelineItem | null> { // tag 参数变为可选
         const metadata = this.app.metadataCache.getFileCache(file);
         const dateValue = metadata?.frontmatter?.[this.settings.dateAttribute];
         
         if (dateValue) {
+            // 只有在提供了 tag 时才使用它来生成预览
+            const preview = tag ? await this.getFilePreview(file, tag) : await this.getFilePreview(file, ''); // 如果没有 tag，传递空字符串
             return {
                 date: new Date(dateValue),
                 title: file.basename,
                 path: file.path,
-                preview: await this.getFilePreview(file),
+                preview: preview,
                 isMilestone: this.checkMilestone(metadata?.frontmatter) // 检查是否为里程碑
             };
         }
@@ -109,7 +127,7 @@ export class Timeline {
                             date: new Date(dateValue),
                             title: item.basename,
                             path: item.path,
-                            preview: await this.getFilePreview(item)
+                            preview: await this.getFilePreview(item, '')
                         });
                     }
                 } else if (item instanceof TFolder && item.path !== 'timelines') {
@@ -136,7 +154,7 @@ export class Timeline {
             const cache = this.app.metadataCache.getFileCache(file);
             if (!cache) continue;
 
-            // 检查文件是否包含目标标签或其子标签
+            // 检查文件是否包含目标标签或其子标签 (保持原有逻辑)
             const hasMatchingTag = (cache.tags && cache.tags.some(tagObj => {
                 const fileTag = tagObj.tag.replace(/^#/, '');
                 return fileTag === normalizedTag || // 完全匹配
@@ -149,7 +167,8 @@ export class Timeline {
             }));
 
             if (hasMatchingTag) {
-                const item = await this.createTimelineItem(file);
+                // 将 normalizedTag 传递给 createTimelineItem
+                const item = await this.createTimelineItem(file, normalizedTag);
                 if (item) {
                     items.push(item);
                 }

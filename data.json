@@ -13,7 +13,9 @@
   "fileNamePrefix": "",
   "fileNameSuffix": "",
   "defaultPosition": "right",
-  "language": "en-US",
+  "language": "zh-CN",
   "milestoneAttribute": "milestone",
-  "milestoneValue": "yes"
+  "milestoneValue": "yes",
+  "tagAttribute": "tags",
+  "timelineDateTextColor": "var(--text-muted)"
 }

@@ -40,5 +40,5 @@ export const DEFAULT_SETTINGS: TimelineSettings = {
     defaultPosition: 'right',  // 默认在右侧边栏
     language: 'zh-CN',  // 默认使用中文
     milestoneAttribute: '', // 默认不使用里程碑属性
-    milestoneValue: ''      // 默认值为空
+    milestoneValue: '',      // 默认值为空
 };

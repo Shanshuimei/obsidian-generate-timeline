@@ -27,6 +27,10 @@
    - Extract all internal links from a specified file and generate a timeline based on the linked files' time attributes.
    - Supports both timeline view and Markdown file formats.
 
+4. **Milestone functionality** :
+   -milestones can be marked with a custom frontmatter attribute
+   -milestone cards have a special style
+
 ## How to Use
 
 1. **Generate Timeline from Folder**
@@ -54,15 +58,21 @@ The plugin offers various customization settings:
 1. **Timeline Appearance**:
    - Timeline line width and color
    - Item spacing
-   - Card background color
+   - Card background color, text color and border color
    - Animation duration
+   - Milestone card background color, text color and border color
 
 2. **Content Settings**:
    - Date attribute: Choose which frontmatter date property to use for sorting (e.g., created, updated, date)
    - File name prefix and suffix: Customize the naming pattern for generated timeline files
+   - Milestone property settings: custom property names and matching values
+   - The card preview preferentially displays the row where the label is located.
 
 3. **View Position**:
    - Choose whether the timeline view appears in the left or right sidebar
+
+4. **Language Settings**:
+   - Support Chinese and English
 
 ## Contribution
 
