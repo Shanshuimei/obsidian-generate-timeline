@@ -28,8 +28,8 @@
    - Supports both timeline view and Markdown file formats.
 
 4. **Milestone functionality** :
-   -milestones can be marked with a custom frontmatter attribute
-   -milestone cards have a special style
+   - milestones can be marked with a custom frontmatter attribute.
+   - milestone cards have a special style.
 
 ## How to Use
 
