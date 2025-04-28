@@ -127,7 +127,8 @@ export class Timeline {
                             date: new Date(dateValue),
                             title: item.basename,
                             path: item.path,
-                            preview: await this.getFilePreview(item, '')
+                            preview: await this.getFilePreview(item, ''),
+                            isMilestone: this.checkMilestone(metadata?.frontmatter)
                         });
                     }
                 } else if (item instanceof TFolder && item.path !== 'timelines') {
