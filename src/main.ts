@@ -330,6 +330,9 @@ export default class TimelinePlugin extends Plugin {
 			.timeline-item-milestone .timeline-date {
 				color: ${this.settings.milestoneCardTextColor} !important;
 			}
+			.timeline-era-title {
+				color: var(--timeline-line-color, ${this.settings.lineColor}) !important;
+			}
 		`;
 		// 移除旧样式
 		document.getElementById('timeline-custom-styles')?.remove();

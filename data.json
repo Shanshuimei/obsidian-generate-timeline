@@ -1,6 +1,6 @@
 {
   "lineWidth": 2,
-  "lineColor": "var(--interactive-accent)",
+  "lineColor": "#6a4dff",
   "itemSpacing": 30,
   "cardBackground": "var(--background-primary-alt)",
   "cardTextColor": "var(--text-normal)",
