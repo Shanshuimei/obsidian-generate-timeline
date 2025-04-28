@@ -26,6 +26,10 @@ export interface I18nStrings {
         rightSidebar: string;
         language: string;
         languageDesc: string;
+        milestoneAttribute: string;
+        milestoneAttributeDesc: string;
+        milestoneValue: string;
+        milestoneValueDesc: string;
     };
     commands: {
         openTimelineView: string;
@@ -74,7 +78,11 @@ export const zhCN: I18nStrings = {
         leftSidebar: '左侧边栏',
         rightSidebar: '右侧边栏',
         language: '语言',
-        languageDesc: '选择插件界面语言'
+        languageDesc: '选择插件界面语言',
+        milestoneAttribute: '里程碑属性',
+        milestoneAttributeDesc: '用于标记里程碑事件的 frontmatter 属性名称（例如：milestone）',
+        milestoneValue: '里程碑值',
+        milestoneValueDesc: '里程碑属性需要匹配的值（留空则表示只要属性存在即可，例如：true, 1）'
     },
     commands: {
         openTimelineView: '打开时间轴视图',
@@ -123,7 +131,11 @@ export const enUS: I18nStrings = {
         leftSidebar: 'Left Sidebar',
         rightSidebar: 'Right Sidebar',
         language: 'Language',
-        languageDesc: 'Select plugin interface language'
+        languageDesc: 'Select plugin interface language',
+        milestoneAttribute: 'Milestone Attribute',
+        milestoneAttributeDesc: 'The frontmatter attribute name used to mark milestone events (e.g., milestone)',
+        milestoneValue: 'Milestone Value',
+        milestoneValueDesc: 'The value the milestone attribute needs to match (leave empty to match if the attribute exists, e.g., true, 1)'
     },
     commands: {
         openTimelineView: 'Open Timeline View',

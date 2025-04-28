@@ -301,21 +301,36 @@ export default class TimelinePlugin extends Plugin {
 				width: ${this.settings.lineWidth}px !important;
 				background: ${this.settings.lineColor} !important;
 			}
-			
 			.timeline-item::after {
-				background: ${this.settings.lineColor} !important;
+				background: var(--timeline-line-color, ${this.settings.lineColor}) !important;
 			}
-			
 			.timeline-item {
 				margin: ${this.settings.itemSpacing}px 0 !important;
 			}
-			
 			.timeline-card {
 				background: ${this.settings.cardBackground} !important;
+				color: ${this.settings.cardTextColor} !important;
+				border: 1px solid ${this.settings.cardBorderColor} !important;
 				transition: transform ${this.settings.animationDuration}ms !important;
 			}
+			.timeline-item-milestone .timeline-card {
+				background: ${this.settings.milestoneCardBackground} !important;
+				color: ${this.settings.milestoneCardTextColor} !important;
+				border: 1px solid ${this.settings.milestoneCardBorderColor} !important;
+			}
+			[data-color-setting="cardTextColor"] {
+				color: ${this.settings.cardTextColor} !important;
+			}
+			[data-color-setting="milestoneCardTextColor"] {
+				color: ${this.settings.milestoneCardTextColor} !important;
+			}
+			.timeline-date {
+				color: ${this.settings.cardTextColor} !important;
+			}
+			.timeline-item-milestone .timeline-date {
+				color: ${this.settings.milestoneCardTextColor} !important;
+			}
 		`;
-
 		// 移除旧样式
 		document.getElementById('timeline-custom-styles')?.remove();
 		document.head.appendChild(style);
@@ -428,6 +443,30 @@ class TimelineSettingTab extends PluginSettingTab {
 					this.display();
 				}));
 
+		// 添加里程碑属性设置
+		new Setting(containerEl)
+			.setName(this.plugin.i18n.settings.milestoneAttribute) 
+			.setDesc(this.plugin.i18n.settings.milestoneAttributeDesc) // 
+			.addText(text => text
+				.setPlaceholder('milestone')
+				.setValue(this.plugin.settings.milestoneAttribute)
+				.onChange(async (value) => {
+					this.plugin.settings.milestoneAttribute = value;
+					await this.plugin.saveSettings();
+				}));
+
+		// 添加里程碑值设置
+		new Setting(containerEl)
+			.setName(this.plugin.i18n.settings.milestoneValue) // TODO: Add i18n string
+			.setDesc(this.plugin.i18n.settings.milestoneValueDesc) // TODO: Add i18n string
+			.addText(text => text
+				.setPlaceholder('true or 1 (leave empty to match any value)')
+				.setValue(this.plugin.settings.milestoneValue)
+				.onChange(async (value) => {
+					this.plugin.settings.milestoneValue = value;
+					await this.plugin.saveSettings();
+				}));
+
 		new Setting(containerEl)
 			.setName(this.plugin.i18n.settings.lineWidth)
 			.setDesc(this.plugin.i18n.settings.lineWidthDesc)
@@ -469,6 +508,7 @@ class TimelineSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
+		// 卡片样式设置
 		new Setting(containerEl)
 			.setName(this.plugin.i18n.settings.cardBackground)
 			.setDesc(this.plugin.i18n.settings.cardBackgroundDesc)
@@ -477,16 +517,65 @@ class TimelineSettingTab extends PluginSettingTab {
 				.onChange(async (value) => {
 					this.plugin.settings.cardBackground = value;
 					await this.plugin.saveSettings();
-				}))
-			.addText(text => text
-				.setPlaceholder(this.plugin.i18n.settings.colorPickerPlaceholder)
-				.setValue('')
+				})
+			)
+			.setTooltip(this.plugin.i18n.settings.colorPickerPlaceholder);
+		new Setting(containerEl)
+			.setName('卡片文字颜色')
+			.setDesc('设置普通事件卡片的文字颜色')
+			.addColorPicker(color => color
+				.setValue(this.plugin.settings.cardTextColor)
 				.onChange(async (value) => {
-					if (value) {
-						this.plugin.settings.cardBackground = value;
-						await this.plugin.saveSettings();
-					}
-				}));
+					this.plugin.settings.cardTextColor = value;
+					await this.plugin.saveSettings();
+				})
+			)
+			.setTooltip('点击左侧色盘选择颜色');
+		new Setting(containerEl)
+			.setName('卡片边框颜色')
+			.setDesc('设置普通事件卡片的边框颜色')
+			.addColorPicker(color => color
+				.setValue(this.plugin.settings.cardBorderColor)
+				.onChange(async (value) => {
+					this.plugin.settings.cardBorderColor = value;
+					await this.plugin.saveSettings();
+				})
+			)
+			.setTooltip('点击左侧色盘选择颜色');
+		// 里程碑卡片样式设置
+		new Setting(containerEl)
+			.setName('里程碑卡片背景色')
+			.setDesc('设置里程碑事件卡片的背景颜色')
+			.addColorPicker(color => color
+				.setValue(this.plugin.settings.milestoneCardBackground)
+				.onChange(async (value) => {
+					this.plugin.settings.milestoneCardBackground = value;
+					await this.plugin.saveSettings();
+				})
+			)
+			.setTooltip('点击左侧色盘选择颜色');
+		new Setting(containerEl)
+			.setName('里程碑卡片文字颜色')
+			.setDesc('设置里程碑事件卡片的文字颜色')
+			.addColorPicker(color => color
+				.setValue(this.plugin.settings.milestoneCardTextColor)
+				.onChange(async (value) => {
+					this.plugin.settings.milestoneCardTextColor = value;
+					await this.plugin.saveSettings();
+				})
+			)
+			.setTooltip('点击左侧色盘选择颜色');
+		new Setting(containerEl)
+			.setName('里程碑卡片边框颜色')
+			.setDesc('设置里程碑事件卡片的边框颜色')
+			.addColorPicker(color => color
+				.setValue(this.plugin.settings.milestoneCardBorderColor)
+				.onChange(async (value) => {
+					this.plugin.settings.milestoneCardBorderColor = value;
+					await this.plugin.saveSettings();
+				})
+			)
+			.setTooltip('点击左侧色盘选择颜色');
 
 		new Setting(containerEl)
 			.setName(this.plugin.i18n.settings.animationDuration)

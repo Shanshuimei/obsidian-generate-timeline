@@ -1,14 +1,20 @@
 {
-  "lineWidth": 2,
-  "lineColor": "var(--interactive-accent)",
+  "lineWidth": 3,
+  "lineColor": "#ff0000",
   "itemSpacing": 30,
-  "cardBackground": "#ffffff",
+  "cardBackground": "#000000",
+  "cardTextColor": "#ffffff",
+  "cardBorderColor": "#ffffff",
+  "milestoneCardBackground": "#ff0000",
+  "milestoneCardTextColor": "#ffffff",
+  "milestoneCardBorderColor": "#ffffff",
   "animationDuration": 200,
   "dateAttribute": "created",
   "fileNamePrefix": "",
   "fileNameSuffix": "",
-  "defaultPosition": "left",
-  "language": "en-US",
-  "nodeSize": 16,
-  "nodeColor": "var(--interactive-accent)"
+  "defaultPosition": "right",
+  "language": "zh-CN",
+  "milestoneAttribute": "milestone",
+  "milestoneValue": "yes",
+  "timelineDateTextColor": "#0a0000"
 }

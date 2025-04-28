@@ -65,8 +65,13 @@ export class TimelineView extends ItemView {
     }
 
     private renderItem(container: HTMLElement, item: TimelineItem, index: number, itemsLength: number) {
+        const itemClasses = [`${CLASS_TIMELINE_ITEM}${this.getItemClasses(index, itemsLength)}`];
+        if (item.isMilestone) {
+            itemClasses.push('timeline-item-milestone'); // 添加里程碑类
+        }
         const itemEl = container.createEl('div', { 
-            cls: `${CLASS_TIMELINE_ITEM}${this.getItemClasses(index, itemsLength)}` 
+            cls: itemClasses.join(' '),
+            attr: { style: `--timeline-line-color: ${this.settings.lineColor}` }
         });
         
         const card = itemEl.createEl('div', { cls: CLASS_TIMELINE_CARD });
@@ -76,12 +81,20 @@ export class TimelineView extends ItemView {
             text: item.date.toLocaleDateString(this.settings.language === 'zh-CN' ? 'zh-CN' : 'en-US') 
         });
 
-        const titleEl = card.createEl('div', { cls: CLASS_TIMELINE_TITLE });
+        const titleEl = card.createEl('div', { 
+            cls: CLASS_TIMELINE_TITLE,
+            attr: { style: `color: ${item.isMilestone ? this.settings.milestoneCardTextColor : this.settings.cardTextColor} !important` }
+        });
         titleEl.textContent = item.title;
+        titleEl.dataset.colorSetting = item.isMilestone ? 'milestoneCardTextColor' : 'cardTextColor';
 
         if (item.preview) {
-            const previewEl = card.createEl('div', { cls: CLASS_TIMELINE_PREVIEW });
+            const previewEl = card.createEl('div', { 
+                cls: CLASS_TIMELINE_PREVIEW,
+                attr: { style: `color: ${item.isMilestone ? this.settings.milestoneCardTextColor : this.settings.cardTextColor} !important` }
+            });
             previewEl.textContent = item.preview;
+            previewEl.dataset.colorSetting = item.isMilestone ? 'milestoneCardTextColor' : 'cardTextColor';
         }
 
         titleEl.addEventListener('click', async () => {

@@ -104,7 +104,7 @@ If your plugin does not need CSS, delete this file.
     font-size: 0.9em;
     color: var(--text-normal);
     line-height: 1.5;
-    border-left: 3px solid var(--interactive-accent);
+    border-left: 3px solid var(--timeline-line-color);
     padding-left: 10px;
     margin-top: 10px;
 }

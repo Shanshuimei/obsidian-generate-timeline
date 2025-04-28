@@ -6,6 +6,7 @@ export interface TimelineItem {
     title: string;
     path: string;
     preview: string;
+    isMilestone?: boolean; // 添加里程碑标志
 }
 
 export class Timeline {
@@ -32,10 +33,27 @@ export class Timeline {
                 date: new Date(dateValue),
                 title: file.basename,
                 path: file.path,
-                preview: await this.getFilePreview(file)
+                preview: await this.getFilePreview(file),
+                isMilestone: this.checkMilestone(metadata?.frontmatter) // 检查是否为里程碑
             };
         }
         return null;
+    }
+
+    private checkMilestone(frontmatter: any): boolean {
+        if (!this.settings.milestoneAttribute || !frontmatter) {
+            return false;
+        }
+        const attributeValue = frontmatter[this.settings.milestoneAttribute];
+        if (attributeValue === undefined || attributeValue === null) {
+            return false;
+        }
+        // 如果 milestoneValue 为空，则只要属性存在就标记为里程碑
+        if (this.settings.milestoneValue === '') {
+            return true;
+        }
+        // 否则，检查属性值是否与设置的值匹配（不区分大小写和类型）
+        return String(attributeValue).toLowerCase() === String(this.settings.milestoneValue).toLowerCase();
     }
 
     private sortItemsByDate(items: TimelineItem[]): TimelineItem[] {
