@@ -1,6 +1,6 @@
 {
   "lineWidth": 2,
-  "lineColor": "#2b00ff",
+  "lineColor": "var(--interactive-accent)",
   "itemSpacing": 30,
   "cardBackground": "var(--background-primary-alt)",
   "cardTextColor": "var(--text-normal)",
@@ -13,9 +13,7 @@
   "fileNamePrefix": "",
   "fileNameSuffix": "",
   "defaultPosition": "right",
-  "language": "zh-CN",
-  "milestoneAttribute": "milestone",
-  "milestoneValue": "yes",
-  "tagAttribute": "tags",
-  "timelineDateTextColor": "var(--text-muted)"
+  "language": "en-US",
+  "milestoneAttribute": "",
+  "milestoneValue": ""
 }

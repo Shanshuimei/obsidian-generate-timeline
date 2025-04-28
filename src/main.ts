@@ -233,17 +233,17 @@ export default class TimelinePlugin extends Plugin {
 	}
 	
 	async selectFolder(): Promise<string | null> {
-		const modal = new FolderSuggestModal(this.app);
+		const modal = new FolderSuggestModal(this.app, this.settings);
 		return await modal.openAndGetValue();
 	}
 
 	async selectFile(): Promise<TFile | null> {
-		const modal = new FileSuggestModal(this.app);
+		const modal = new FileSuggestModal(this.app, this.settings);
 		return await modal.openAndGetValue();
 	}
 
 	async selectTag(): Promise<string | null> {
-		const modal = new TagSuggestModal(this.app);
+		const modal = new TagSuggestModal(this.app, this.settings);
 		return await modal.openAndGetValue();
 	}
 

@@ -198,11 +198,17 @@ export class Timeline {
             }
             
             if (currentMonth !== month) {
-                markdown += `\n### ${date.toLocaleString('default', { month: 'long' })}\n\n`;
+                const monthName = this.settings.language === 'zh-CN' 
+                    ? date.toLocaleString('zh-CN', { month: 'long' })
+                    : date.toLocaleString('en-US', { month: 'long' });
+                markdown += `\n### ${monthName}\n\n`;
                 currentMonth = month;
             }
             
-            markdown += `#### ${date.toLocaleDateString('zh-CN')} - [[${item.title}]]\n\n`;
+            const dateFormat = this.settings.language === 'zh-CN' 
+                ? date.toLocaleDateString('zh-CN')
+                : date.toLocaleDateString('en-US');
+            markdown += `#### ${dateFormat} - [[${item.title}]]\n\n`;
         }
         
         return markdown;

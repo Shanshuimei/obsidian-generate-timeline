@@ -3,9 +3,9 @@ import { App, FuzzySuggestModal, TFolder } from 'obsidian';
 export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
     private resolve: (value: string | null) => void;
 
-    constructor(app: App) {
+    constructor(app: App, private settings: {language: string}) {
         super(app);
-        this.setPlaceholder("选择一个文件夹");
+        this.setPlaceholder(this.settings.language === 'zh-CN' ? "选择一个文件夹" : "Select a folder");
     }
 
     getItems(): TFolder[] {
@@ -43,4 +43,4 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
             return value;
         });
     }
-} 
+}

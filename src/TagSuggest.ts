@@ -3,9 +3,9 @@ import { App, FuzzySuggestModal, TFile } from 'obsidian';
 export class TagSuggestModal extends FuzzySuggestModal<string> {
     private resolve: (value: string | null) => void;
 
-    constructor(app: App) {
+    constructor(app: App, private settings: {language: string}) {
         super(app);
-        this.setPlaceholder("选择一个标签");
+        this.setPlaceholder(this.settings.language === 'zh-CN' ? "选择一个标签" : "Select a tag");
     }
 
     getItems(): string[] {
