@@ -12,6 +12,16 @@ export interface I18nStrings {
         itemSpacingDesc: string;
         cardBackground: string;
         cardBackgroundDesc: string;
+        cardTextColor: string;
+        cardTextColorDesc: string;
+        cardBorderColor: string;
+        cardBorderColorDesc: string;
+        milestoneCardBackground: string;
+        milestoneCardBackgroundDesc: string;
+        milestoneCardTextColor: string;
+        milestoneCardTextColorDesc: string;
+        milestoneCardBorderColor: string;
+        milestoneCardBorderColorDesc: string;
         animationDuration: string;
         animationDurationDesc: string;
         dateAttribute: string;
@@ -65,6 +75,16 @@ export const zhCN: I18nStrings = {
         itemSpacingDesc: '设置时间轴项目之间的间距（像素）',
         cardBackground: '卡片背景色',
         cardBackgroundDesc: '设置内容卡片的背景颜色',
+        cardTextColor: '卡片文字颜色',
+        cardTextColorDesc: '设置普通事件卡片的文字颜色',
+        cardBorderColor: '卡片边框颜色',
+        cardBorderColorDesc: '设置普通事件卡片的边框颜色',
+        milestoneCardBackground: '里程碑卡片背景色',
+        milestoneCardBackgroundDesc: '设置里程碑事件卡片的背景颜色',
+        milestoneCardTextColor: '里程碑卡片文字颜色',
+        milestoneCardTextColorDesc: '设置里程碑事件卡片的文字颜色',
+        milestoneCardBorderColor: '里程碑卡片边框颜色',
+        milestoneCardBorderColorDesc: '设置里程碑事件卡片的边框颜色',
         animationDuration: '动画持续时间',
         animationDurationDesc: '设置悬停动画的持续时间（毫秒）',
         dateAttribute: '日期属性',
@@ -118,6 +138,16 @@ export const enUS: I18nStrings = {
         itemSpacingDesc: 'Set the spacing between timeline items (pixels)',
         cardBackground: 'Card Background Color',
         cardBackgroundDesc: 'Set the background color of content cards',
+        cardTextColor: 'Card Text Color',
+        cardTextColorDesc: 'Set the text color of regular event cards',
+        cardBorderColor: 'Card Border Color',
+        cardBorderColorDesc: 'Set the border color of regular event cards',
+        milestoneCardBackground: 'Milestone Card Background',
+        milestoneCardBackgroundDesc: 'Set the background color of milestone event cards',
+        milestoneCardTextColor: 'Milestone Card Text Color',
+        milestoneCardTextColorDesc: 'Set the text color of milestone event cards',
+        milestoneCardBorderColor: 'Milestone Card Border Color',
+        milestoneCardBorderColorDesc: 'Set the border color of milestone event cards',
         animationDuration: 'Animation Duration',
         animationDurationDesc: 'Set the duration of hover animations (milliseconds)',
         dateAttribute: 'Date Attribute',

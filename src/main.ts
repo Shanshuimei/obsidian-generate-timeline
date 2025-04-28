@@ -521,8 +521,8 @@ class TimelineSettingTab extends PluginSettingTab {
 			)
 			.setTooltip(this.plugin.i18n.settings.colorPickerPlaceholder);
 		new Setting(containerEl)
-			.setName('卡片文字颜色')
-			.setDesc('设置普通事件卡片的文字颜色')
+			.setName(this.plugin.i18n.settings.cardTextColor)
+			.setDesc(this.plugin.i18n.settings.cardTextColorDesc)
 			.addColorPicker(color => color
 				.setValue(this.plugin.settings.cardTextColor)
 				.onChange(async (value) => {
@@ -530,10 +530,9 @@ class TimelineSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				})
 			)
-			.setTooltip('点击左侧色盘选择颜色');
 		new Setting(containerEl)
-			.setName('卡片边框颜色')
-			.setDesc('设置普通事件卡片的边框颜色')
+			.setName(this.plugin.i18n.settings.cardBorderColor)
+			.setDesc(this.plugin.i18n.settings.cardBorderColorDesc)
 			.addColorPicker(color => color
 				.setValue(this.plugin.settings.cardBorderColor)
 				.onChange(async (value) => {
@@ -541,11 +540,10 @@ class TimelineSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				})
 			)
-			.setTooltip('点击左侧色盘选择颜色');
 		// 里程碑卡片样式设置
 		new Setting(containerEl)
-			.setName('里程碑卡片背景色')
-			.setDesc('设置里程碑事件卡片的背景颜色')
+			.setName(this.plugin.i18n.settings.milestoneCardBackground)
+			.setDesc(this.plugin.i18n.settings.milestoneCardBackgroundDesc)
 			.addColorPicker(color => color
 				.setValue(this.plugin.settings.milestoneCardBackground)
 				.onChange(async (value) => {
@@ -553,10 +551,10 @@ class TimelineSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				})
 			)
-			.setTooltip('点击左侧色盘选择颜色');
+
 		new Setting(containerEl)
-			.setName('里程碑卡片文字颜色')
-			.setDesc('设置里程碑事件卡片的文字颜色')
+			.setName(this.plugin.i18n.settings.milestoneCardTextColor)
+			.setDesc(this.plugin.i18n.settings.milestoneCardTextColorDesc)
 			.addColorPicker(color => color
 				.setValue(this.plugin.settings.milestoneCardTextColor)
 				.onChange(async (value) => {
@@ -564,10 +562,9 @@ class TimelineSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				})
 			)
-			.setTooltip('点击左侧色盘选择颜色');
 		new Setting(containerEl)
-			.setName('里程碑卡片边框颜色')
-			.setDesc('设置里程碑事件卡片的边框颜色')
+			.setName(this.plugin.i18n.settings.milestoneCardBorderColor)
+			.setDesc(this.plugin.i18n.settings.milestoneCardBorderColorDesc)
 			.addColorPicker(color => color
 				.setValue(this.plugin.settings.milestoneCardBorderColor)
 				.onChange(async (value) => {
@@ -575,7 +572,6 @@ class TimelineSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				})
 			)
-			.setTooltip('点击左侧色盘选择颜色');
 
 		new Setting(containerEl)
 			.setName(this.plugin.i18n.settings.animationDuration)
