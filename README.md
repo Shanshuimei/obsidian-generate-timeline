@@ -17,19 +17,31 @@
 
 1. **Generate Timeline Based on Folders**:
    - Select a folder, and the plugin will scan all files (including subfolders) within it to generate a timeline based on the time attributes in the files.
-   - Supports both timeline view and Markdown file formats.
+   - Supports both timeline view and Markdown file formats. 
+   <p></p>
 
-2. **Generate Timeline Based on Tags**:
+   https://github.com/user-attachments/assets/10b64bef-4a07-4e2e-bded-152dc82ab241
+   
+3. **Generate Timeline Based on Tags**:
    - Select a tag, and the plugin will scan all content with that tag (including subtags) to generate a timeline based on the time attributes.
    - Supports both timeline view and Markdown file formats.
+      <p></p>
 
-3. **Generate Timeline Based on File Links**:
+   https://github.com/user-attachments/assets/5da9d7ac-67f1-4c65-bbef-f703696463d8
+
+4. **Generate Timeline Based on File Links**:
    - Extract all internal links from a specified file and generate a timeline based on the linked files' time attributes.
    - Supports both timeline view and Markdown file formats.
+     <p></p>
 
-4. **Milestone functionality** :
+   https://github.com/user-attachments/assets/b55edb9a-db6f-4a3d-929b-8bc279bd3c72
+
+5. **Milestone functionality** :
    - milestones can be marked with a custom frontmatter attribute.
    - milestone cards have a special style.
+     <p></p>
+     
+   https://github.com/user-attachments/assets/3e92a73a-2af5-4f75-90be-a13aca6c1375
 
 ## How to Use
 
