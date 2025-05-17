@@ -1,13 +1,15 @@
-import { 
-	App, 
-	Plugin, 
-	PluginSettingTab, 
-	Setting, 
-	TFile, 
+import {
+	App,
+	Plugin,
+	PluginSettingTab,
+	Setting,
+	TFile,
 	Menu,
 	TAbstractFile,
 	normalizePath,
-	Notice
+	Notice,
+	Modal,
+	TextComponent
 } from 'obsidian';
 import { I18nStrings, zhCN, enUS } from './i18n';
 import { TimelineView, VIEW_TYPE_TIMELINE } from './TimelineView';
@@ -50,7 +52,8 @@ export default class TimelinePlugin extends Plugin {
 						const generatedFrom = cache?.frontmatter?.generated_from;
 						
 						if (generatedFrom) {
-							const [type, value] = generatedFrom.split(':');
+							const [type, ...valueParts] = generatedFrom.split(':');
+                            const value = valueParts.join(':');
 							
 							menu.addItem((item) => {
 								item
@@ -66,6 +69,8 @@ export default class TimelinePlugin extends Plugin {
 												await view.updateFromTag(value);
 											} else if (type === 'file') {
 												await view.updateFromFile(value);
+											} else if (type === 'metadata') {
+												await (view as any).updateFromMetadata(value);
 											}
 										}
 									});
@@ -226,7 +231,66 @@ export default class TimelinePlugin extends Plugin {
 					}
 				}
 			});
-			
+
+			// 从元数据生成时间轴视图
+			this.addCommand({
+				id: 'generate-timeline-view-from-metadata',
+				name: this.i18n.commands.generateFromMetadata,
+				callback: async () => {
+					try {
+						const metadataQuery = await this.selectMetadataString();
+						if (metadataQuery) {
+							await this.activateView(this.settings.defaultPosition);
+							const view = this.getTimelineView();
+							if (view) {
+								// TimelineView.ts 需添加 updateFromMetadata 方法
+								await (view as any).updateFromMetadata(metadataQuery);
+							}
+						}
+					} catch (error) {
+						console.error('从元数据生成时间轴视图时出错:', error);
+						new Notice(this.i18n.errors.generateMetadataFailed);
+					}
+				}
+			});
+
+			// 从元数据生成时间轴文件
+			this.addCommand({
+				id: 'generate-timeline-file-from-metadata',
+				name: this.i18n.commands.generateFileFromMetadata,
+				callback: async () => {
+					try {
+						const metadataQuery = await this.selectMetadataString();
+						if (metadataQuery) {
+							const timeline = new Timeline(this.app, this.settings);
+							// Timeline.ts 需添加 generateFromMetadata 方法
+							const items = await (timeline as any).generateFromMetadata(metadataQuery);
+							const content = await timeline.generateTimelineMarkdown(
+								items,
+								`Timeline - Metadata: ${metadataQuery}`,
+								{ type: 'metadata', value: metadataQuery }
+							);
+
+							const { folderPath } = await this.createNestedFolders('metadata-search');
+							const safeBaseName = metadataQuery.substring(0, 30).replace(/[^a-zA-Z0-9_\-]+/g, '_') || 'metadata_query';
+							const finalFileName = this.generateFileName(safeBaseName);
+							const filePath = `${folderPath}/${finalFileName}.md`;
+
+							const existingFile = this.app.vault.getAbstractFileByPath(filePath);
+							if (existingFile) {
+								await this.app.vault.delete(existingFile);
+							}
+
+							const newFile = await this.app.vault.create(filePath, content);
+							await this.app.workspace.getLeaf().openFile(newFile);
+						}
+					} catch (error) {
+						console.error('从元数据生成时间轴文件时出错:', error);
+						new Notice(this.i18n.errors.generateMetadataFailed);
+					}
+				}
+			});
+
 		} catch (error) {
 			console.error('插件加载时出错:', error);
 		}
@@ -244,6 +308,11 @@ export default class TimelinePlugin extends Plugin {
 
 	async selectTag(): Promise<string | null> {
 		const modal = new TagSuggestModal(this.app, this.settings);
+		return await modal.openAndGetValue();
+	}
+
+	async selectMetadataString(): Promise<string | null> {
+		const modal = new MetadataInputModal(this.app, this); // Pass plugin to modal
 		return await modal.openAndGetValue();
 	}
 
@@ -404,6 +473,85 @@ export default class TimelinePlugin extends Plugin {
 			throw error;
 		}
 	}
+}
+
+export class MetadataInputModal extends Modal {
+	plugin: TimelinePlugin; // Add plugin reference
+    private value: string = '';
+    private resolvePromise: (value: string | null) => void;
+    private inputEl: TextComponent;
+
+    constructor(app: App, plugin: TimelinePlugin) { // Accept plugin in constructor
+        super(app);
+		this.plugin = plugin; // Store plugin reference
+    }
+
+    async openAndGetValue(): Promise<string | null> {
+        return new Promise((resolve) => {
+            this.resolvePromise = resolve;
+            this.open();
+        });
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+        contentEl.addClass('metadata-input-modal');
+
+        contentEl.createEl('h2', { text: this.plugin.i18n.modal.metadataInputTitle });
+
+        new Setting(contentEl)
+            .setName(this.plugin.i18n.modal.metadataQueryName)
+            .setDesc(this.plugin.i18n.modal.metadataQueryDesc)
+            .addText(text => {
+                this.inputEl = text;
+                text.setPlaceholder(this.plugin.i18n.modal.metadataInputPlaceholder)
+                    .onChange(value => this.value = value.trim());
+                text.inputEl.style.width = '100%';
+				text.inputEl.addEventListener('keydown', (evt: KeyboardEvent) => {
+                    if (evt.key === 'Enter') {
+                        evt.preventDefault();
+                        this.submit();
+                    }
+                });
+            });
+
+        new Setting(contentEl)
+            .addButton(button => button
+                .setButtonText(this.plugin.i18n.modal.submitButton)
+                .setCta()
+                .onClick(() => this.submit()))
+            .addButton(button => button
+                .setButtonText(this.plugin.i18n.modal.cancelButton)
+                .onClick(() => this.closeAndResolve(null)));
+
+		// Focus the input field when the modal opens
+		setTimeout(() => {
+			if (this.inputEl && this.inputEl.inputEl) {
+				this.inputEl.inputEl.focus();
+			}
+		}, 50);
+    }
+
+    submit() {
+        if (this.value) {
+            this.closeAndResolve(this.value);
+        } else {
+            new Notice(this.plugin.i18n.modal.emptyInputNotice);
+        }
+    }
+
+    closeAndResolve(value: string | null) {
+		if (this.resolvePromise) {
+        	this.resolvePromise(value);
+		}
+        this.close();
+    }
+
+    onClose() {
+        const { contentEl } = this;
+        contentEl.empty();
+    }
 }
 
 class TimelineSettingTab extends PluginSettingTab {

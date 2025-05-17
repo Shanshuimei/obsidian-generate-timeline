@@ -49,6 +49,17 @@ export interface I18nStrings {
         generateFileFromTag: string;
         generateFromFileLinks: string;
         generateFileFromFileLinks: string;
+        generateFromMetadata: string; // New command
+        generateFileFromMetadata: string; // New command
+    };
+    modal: {
+        metadataInputTitle: string;
+        metadataQueryName: string;
+        metadataQueryDesc: string;
+        metadataInputPlaceholder: string;
+        submitButton: string;
+        cancelButton: string;
+        emptyInputNotice: string;
     };
     errors: {
         renderFailed: string;
@@ -58,6 +69,8 @@ export interface I18nStrings {
         noTaggedFiles: string;
         noFileLinks: string;
         createViewFailed: string;
+        noMetadataFiles: string; // New error
+        generateMetadataFailed: string; // New error
     };
 }
 
@@ -111,7 +124,18 @@ export const zhCN: I18nStrings = {
         generateFromTag: '从标签生成时间轴视图',
         generateFileFromTag: '从标签生成时间轴文件',
         generateFromFileLinks: '从文件链接生成时间轴视图',
-        generateFileFromFileLinks: '从文件链接生成时间轴文件'
+        generateFileFromFileLinks: '从文件链接生成时间轴文件',
+        generateFromMetadata: '从元数据生成时间轴视图',
+        generateFileFromMetadata: '从元数据生成时间轴文件'
+    },
+    modal: {
+        metadataInputTitle: '输入元数据字符串',
+        metadataQueryName: '元数据查询',
+        metadataQueryDesc: '例如：author: - 我  或  status: ongoing',
+        metadataInputPlaceholder: '输入元数据...',
+        submitButton: '确定',
+        cancelButton: '取消',
+        emptyInputNotice: '请输入元数据字符串'
     },
     errors: {
         renderFailed: '时间轴视图渲染失败',
@@ -120,7 +144,9 @@ export const zhCN: I18nStrings = {
         generateFileFailed: '从文件链接生成时间轴视图时出错',
         noTaggedFiles: '没有找到包含标签 #{tag} 及其子标签的文件',
         noFileLinks: '文件 {filename} 中没有找到可用的链接或日期信息',
-        createViewFailed: '无法创建时间轴视图：请检查侧边栏空间'
+        createViewFailed: '无法创建时间轴视图：请检查侧边栏空间',
+        noMetadataFiles: '没有找到与元数据查询 “{query}” 匹配的文件',
+        generateMetadataFailed: '从元数据生成时间轴失败'
     }
 };
 
@@ -169,12 +195,23 @@ export const enUS: I18nStrings = {
     },
     commands: {
         openTimelineView: 'Open Timeline View',
-        generateFromFolder: 'Generate Timeline View from Folder',
-        generateFileFromFolder: 'Generate Timeline File from Folder',
-        generateFromTag: 'Generate Timeline View from Tag',
-        generateFileFromTag: 'Generate Timeline File from Tag',
+        generateFromFolder: 'Generate Timeline View from any Folder',
+        generateFileFromFolder: 'Generate Timeline File from any Folder',
+        generateFromTag: 'Generate Timeline View from any Tag',
+        generateFileFromTag: 'Generate Timeline File from any Tag',
         generateFromFileLinks: 'Generate Timeline View from File Links',
-        generateFileFromFileLinks: 'Generate Timeline File from File Links'
+        generateFileFromFileLinks: 'Generate Timeline File from File Links',
+        generateFromMetadata: 'Generate Timeline View from any Metadata',
+        generateFileFromMetadata: 'Generate Timeline File from any Metadata'
+    },
+    modal: {
+        metadataInputTitle: 'Enter Metadata String',
+        metadataQueryName: 'Metadata Query',
+        metadataQueryDesc: 'e.g., author: - Me  or  status: ongoing',
+        metadataInputPlaceholder: 'Enter metadata...',
+        submitButton: 'Submit',
+        cancelButton: 'Cancel',
+        emptyInputNotice: 'Please enter a metadata string'
     },
     errors: {
         renderFailed: 'Failed to render timeline view',
@@ -183,6 +220,8 @@ export const enUS: I18nStrings = {
         generateFileFailed: 'Error generating file links timeline view',
         noTaggedFiles: 'No files found with tag #{tag} or its subtags',
         noFileLinks: 'No usable links or date information found in file {filename}',
-        createViewFailed: 'Cannot create timeline view: Please check sidebar space'
+        createViewFailed: 'Cannot create timeline view: Please check sidebar space',
+        noMetadataFiles: 'No files found matching metadata query "{query}"',
+        generateMetadataFailed: 'Failed to generate timeline from metadata'
     }
 };

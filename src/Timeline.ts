@@ -40,7 +40,7 @@ export class Timeline {
         return previewContent.slice(0, 50) + (previewContent.length > 50 ? '...' : '');
     }
 
-    private async createTimelineItem(file: TFile, tag?: string): Promise<TimelineItem | null> { // tag 参数变为可选
+    private async createTimelineItem(file: TFile, tag?: string, metadataQuery?: string): Promise<TimelineItem | null> { // tag 和 metadataQuery 参数变为可选
         const metadata = this.app.metadataCache.getFileCache(file);
         const dateValue = metadata?.frontmatter?.[this.settings.dateAttribute];
         
@@ -105,6 +105,52 @@ export class Timeline {
             }
         }
         
+        return this.sortItemsByDate(items);
+    }
+
+    async generateFromMetadata(metadataQuery: string): Promise<TimelineItem[]> {
+        const allFiles = this.app.vault.getMarkdownFiles();
+        const items: TimelineItem[] = [];
+        const queryParts = metadataQuery.split(':').map(p => p.trim());
+        const queryKey = queryParts[0];
+        const queryValue = queryParts.length > 1 ? queryParts.slice(1).join(':').trim() : null;
+
+        for (const file of allFiles) {
+            const cache = this.app.metadataCache.getFileCache(file);
+            if (!cache || !cache.frontmatter) continue;
+
+            const frontmatter = cache.frontmatter;
+            let match = false;
+
+            if (queryValue !== null) {
+                // 检查 key: value 匹配
+                const fmValue = frontmatter[queryKey];
+                if (fmValue !== undefined) {
+                    if (Array.isArray(fmValue)) {
+                        // 如果 frontmatter 值是数组，检查数组中是否包含查询值
+                        // 特殊处理 "- 我" 这种带 "- " 前缀的查询值
+                        const cleanedQueryValue = queryValue.startsWith('- ') ? queryValue.substring(2) : queryValue;
+                        if (fmValue.map(String).map(v => v.trim()).includes(cleanedQueryValue)) {
+                            match = true;
+                        }
+                    } else if (String(fmValue).trim() === queryValue) {
+                        match = true;
+                    }
+                }
+            } else {
+                // 只检查 key 是否存在
+                if (frontmatter.hasOwnProperty(queryKey)) {
+                    match = true;
+                }
+            }
+
+            if (match) {
+                const item = await this.createTimelineItem(file, undefined, metadataQuery);
+                if (item) {
+                    items.push(item);
+                }
+            }
+        }
         return this.sortItemsByDate(items);
     }
 
@@ -180,8 +226,15 @@ export class Timeline {
         return this.sortItemsByDate(items);
     }
 
-    async generateTimelineMarkdown(items: TimelineItem[], title: string, source: { type: 'tag' | 'folder' | 'file', value: string }): Promise<string> {
-        let markdown = `---\ngenerated_from: ${source.type}:${source.value}\n---\n\n`;
+    async generateTimelineMarkdown(items: TimelineItem[], title: string, source: { type: 'tag' | 'folder' | 'file' | 'metadata', value: string }): Promise<string> {
+        let generatedFromValue = source.value;
+        if (source.type === 'metadata') {
+            const parts = source.value.split(':');
+            const key = parts[0].trim();
+            const value = parts.slice(1).join(':').trim();
+            generatedFromValue = `${key}:${value}`;
+        }
+        let markdown = `---\ngenerated_from: ${source.type}:${generatedFromValue}\n---\n\n`;
         markdown += `# ${title}\n\n`;
         
         let currentYear = null;

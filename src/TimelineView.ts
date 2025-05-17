@@ -47,6 +47,24 @@ export class TimelineView extends ItemView {
         }
     }
 
+    async updateFromMetadata(metadataQuery: string) {
+        try {
+            this.currentTitle = `🔍 ${metadataQuery}`;
+            // Assuming generateFromMetadata is added to Timeline class
+            this.items = await (this.timeline as any).generateFromMetadata(metadataQuery);
+
+            if (this.items.length === 0) {
+                new Notice(this.i18n.errors.noMetadataFiles.replace('{query}', metadataQuery));
+                return;
+            }
+
+            await this.render();
+        } catch (error) {
+            new Notice(this.i18n.errors.generateMetadataFailed);
+            console.error('Error generating timeline from metadata:', error);
+        }
+    }
+
     private renderTitle(container: HTMLElement) {
         const titleContainer = container.createEl('div', { cls: CLASS_TIMELINE_HEADER });
         titleContainer.createEl('h2', { text: this.currentTitle });
