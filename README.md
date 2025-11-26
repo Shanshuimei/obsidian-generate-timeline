@@ -9,7 +9,7 @@
     <a href="./LICENCE"><img src="https://img.shields.io/static/v1.svg?style=for-the-badge&label=License&message=MIT&colorA=363a4f&colorB=b7bdf8" alt="MIT license"/></a>
     <a href="https://github.com/Shanshuimei/obsidian-generate-timeline/releases"><img src="https://img.shields.io/github/downloads/Shanshuimei/obsidian-generate-timeline/total?colorA=363a4f&colorB=1a72f5&style=for-the-badge" alt="Total downloads"></a>
     <br/><br/>
-    <b>Generate Timeline</b> is a plugin to help users generate timelines based on folders, tags, or files. With this plugin, users can easily view and manage their notes in chronological order.
+    <b>Generate Timeline</b> It is a plugin that helps users generate timelines based on folders, tags, files, or metadata. With this plugin, users can easily view and manage their notes in chronological order.
 </p>
 <p align="center"><a href="https://kivgf4fnsy5.feishu.cn/drive/folder/ELWHf58RmlCOv6dBLSKcEG44nRd?from=from_copylink">中文文档</a></p>
 
@@ -21,7 +21,12 @@
    <p></p>
 
    https://github.com/user-attachments/assets/10b64bef-4a07-4e2e-bded-152dc82ab241
-   
+
+2. **Generate Timeline Based on Metadata**:
+   - Input metadata attributes and its value, the plugin will scan all files with matching metadata to generate a timeline based on time attributes.
+   - Supports both timeline view and Markdown file formats.
+   <p></p>
+
 3. **Generate Timeline Based on Tags**:
    - Select a tag, and the plugin will scan all content with that tag (including subtags) to generate a timeline based on the time attributes.
    - Supports both timeline view and Markdown file formats.
@@ -51,13 +56,19 @@
      - `Generate Timeline: Generate Timeline File from Folder` for a Markdown file
    - Select your target folder and the timeline will be generated automatically
 
-2. **Generate Timeline from Tags**
+2. **Generate Timeline from Metadata**
+   - Open the Command Palette and choose one of the following:
+     - `Generate Timeline: Generate Timeline View from Metadata` for a timeline view
+     - `Generate Timeline: Generate Timeline File from Metadata` for a Markdown file
+   - Select the metadata attributes and values to filter by
+
+3. **Generate Timeline from Tags**
    - Open the Command Palette and choose one of the following:
      - `Generate Timeline: Generate Timeline View from Tags` for a timeline view
      - `Generate Timeline: Generate Timeline File from Tags` for a Markdown file
    - Select your desired tag and the timeline will be generated automatically
 
-3. **Generate Timeline from File Links**
+4. **Generate Timeline from File Links**
    - Open the Command Palette and choose one of the following:
      - `Generate Timeline: Generate Timeline View from File Links` for a timeline view
      - `Generate Timeline: Generate Timeline File from File Links` for a Markdown file
