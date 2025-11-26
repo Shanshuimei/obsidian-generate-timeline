@@ -18,6 +18,11 @@ export class Timeline {
         this.settings = settings;
     }
 
+    // 辅助函数：检查文件是否在timelines文件夹中
+    private isInTimelinesFolder(file: TFile): boolean {
+        return file.path.startsWith('timelines/') || file.path === 'timelines';
+    }
+
     private async getFilePreview(file: TFile, tag: string): Promise<string> {
         const content = await this.app.vault.cachedRead(file);
         const normalizedTag = tag.replace(/^#/, ''); // 使用传入的 tag
@@ -99,9 +104,12 @@ export class Timeline {
         const items: TimelineItem[] = [];
         
         for (const linkedFile of linkedFiles) {
-            const item = await this.createTimelineItem(linkedFile);
-            if (item) {
-                items.push(item);
+            // 忽略timelines文件夹中的文件
+            if (!this.isInTimelinesFolder(linkedFile)) {
+                const item = await this.createTimelineItem(linkedFile);
+                if (item) {
+                    items.push(item);
+                }
             }
         }
         
@@ -110,6 +118,8 @@ export class Timeline {
 
     async generateFromMetadata(metadataQuery: string): Promise<TimelineItem[]> {
         const allFiles = this.app.vault.getMarkdownFiles();
+        // 过滤掉timelines文件夹中的文件
+        const filteredFiles = allFiles.filter(file => !this.isInTimelinesFolder(file));
         const items: TimelineItem[] = [];
         
         // 更健壮的查询解析
@@ -131,7 +141,7 @@ export class Timeline {
             queryKey = metadataQuery.trim();
         }
 
-        for (const file of allFiles) {
+        for (const file of filteredFiles) {
             try {
                 const cache = this.app.metadataCache.getFileCache(file);
                 if (!cache || !cache.frontmatter) continue;
@@ -187,7 +197,8 @@ export class Timeline {
     }
 
     async generateFromFolder(folder: TFolder): Promise<TimelineItem[]> {
-        if (folder.path === 'timelines') {
+        // 检查文件夹是否为timelines或其子文件夹
+        if (folder.path === 'timelines' || folder.path.startsWith('timelines/')) {
             return [];
         }
         
@@ -195,6 +206,11 @@ export class Timeline {
         
         // 递归处理文件夹的函数
         const processFolder = async (currentFolder: TFolder) => {
+            // 确保不处理timelines文件夹及其子文件夹
+            if (currentFolder.path === 'timelines' || currentFolder.path.startsWith('timelines/')) {
+                return;
+            }
+            
             for (const item of currentFolder.children) {
                 if (item instanceof TFile && item.extension === 'md') {
                     const metadata = this.app.metadataCache.getFileCache(item);
@@ -209,7 +225,7 @@ export class Timeline {
                             isMilestone: this.checkMilestone(metadata?.frontmatter)
                         });
                     }
-                } else if (item instanceof TFolder && item.path !== 'timelines') {
+                } else if (item instanceof TFolder) {
                     // 递归处理子文件夹
                     await processFolder(item);
                 }
@@ -224,6 +240,8 @@ export class Timeline {
 
     async generateFromTag(tag: string): Promise<TimelineItem[]> {
         const allFiles = this.app.vault.getMarkdownFiles();
+        // 过滤掉timelines文件夹中的文件
+        const filteredFiles = allFiles.filter(file => !this.isInTimelinesFolder(file));
         const items: TimelineItem[] = [];
         
         // 移除开头的#号（如果存在）并标准化标签
@@ -238,7 +256,7 @@ export class Timeline {
                    cleanSearchTag.includes(cleanFileTag); // 支持部分匹配
         };
         
-        for (const file of allFiles) {
+        for (const file of filteredFiles) {
             try {
                 const cache = this.app.metadataCache.getFileCache(file);
                 if (!cache) continue;

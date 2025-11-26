@@ -9,7 +9,10 @@ export class FileSuggestModal extends FuzzySuggestModal<TFile> {
     }
 
     getItems(): TFile[] {
-        return this.app.vault.getMarkdownFiles();
+        // 过滤掉timelines文件夹中的Markdown文件
+        return this.app.vault.getMarkdownFiles().filter(file => {
+            return !file.path.startsWith('timelines/') && file.path !== 'timelines';
+        });
     }
 
     getItemText(file: TFile): string {

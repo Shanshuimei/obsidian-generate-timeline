@@ -10,11 +10,20 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
 
     getItems(): TFolder[] {
         const folders: TFolder[] = [];
+        
+        // 检查文件夹是否应该被过滤掉（timelines文件夹及其子文件夹）
+        const shouldFilterFolder = (folderPath: string): boolean => {
+            return folderPath === 'timelines' || folderPath.startsWith('timelines/');
+        };
+        
         const pushFolder = (folder: TFolder) => {
-            folders.push(folder);
-            folder.children
-                .filter((child): child is TFolder => child instanceof TFolder)
-                .forEach(pushFolder);
+            // 只添加非timelines文件夹及其子文件夹
+            if (!shouldFilterFolder(folder.path)) {
+                folders.push(folder);
+                folder.children
+                    .filter((child): child is TFolder => child instanceof TFolder)
+                    .forEach(pushFolder);
+            }
         };
 
         // 获取根文件夹
