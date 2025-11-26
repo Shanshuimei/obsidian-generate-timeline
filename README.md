@@ -39,8 +39,6 @@
    - Supports both timeline view and Markdown file formats.
      <p></p>
 
-   https://github.com/user-attachments/assets/b55edb9a-db6f-4a3d-929b-8bc279bd3c72
-
 5. **Milestone functionality** :
    - milestones can be marked with a custom frontmatter attribute.
    - milestone cards have a special style.
@@ -70,8 +68,8 @@
 
 4. **Generate Timeline from File Links**
    - Open the Command Palette and choose one of the following:
-     - `Generate Timeline: Generate Timeline View from File Links` for a timeline view
-     - `Generate Timeline: Generate Timeline File from File Links` for a Markdown file
+     - `Generate Timeline: Generate Timeline View from Current File Links` for a timeline view
+     - `Generate Timeline: Generate Timeline File from Current File Links` for a Markdown file
    - Select the source file containing the links
 
 ## Customization Options
