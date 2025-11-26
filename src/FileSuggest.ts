@@ -8,11 +8,18 @@ export class FileSuggestModal extends FuzzySuggestModal<TFile> {
         this.setPlaceholder(this.settings.language === 'zh-CN' ? "选择一个Markdown文件" : "Select a Markdown file");
     }
 
-    getItems(): TFile[] {
-        // 过滤掉timelines文件夹中的Markdown文件
-        return this.app.vault.getMarkdownFiles().filter(file => {
-            return !file.path.startsWith('timelines/') && file.path !== 'timelines';
+    async openAndGetValue(): Promise<TFile | null> {
+        return new Promise<TFile | null>((resolve) => {
+            this.resolve = resolve;
+            this.open();
         });
+    }
+
+    getItems(): TFile[] {
+        // 返回所有Markdown文件，但过滤掉timelines文件夹中的文件
+        return this.app.vault.getMarkdownFiles().filter(file => 
+            !file.path.startsWith('timelines/') && file.path !== 'timelines'
+        );
     }
 
     getItemText(file: TFile): string {
@@ -22,12 +29,5 @@ export class FileSuggestModal extends FuzzySuggestModal<TFile> {
     onChooseItem(file: TFile): void {
         this.resolve(file);
         this.close();
-    }
-
-    async openAndGetValue(): Promise<TFile | null> {
-        return new Promise<TFile | null>((resolve) => {
-            this.resolve = resolve;
-            this.open();
-        });
     }
 }

@@ -123,8 +123,8 @@ export const zhCN: I18nStrings = {
         generateFileFromFolder: '从文件夹生成时间轴文件',
         generateFromTag: '从标签生成时间轴视图',
         generateFileFromTag: '从标签生成时间轴文件',
-        generateFromFileLinks: '从文件链接生成时间轴视图',
-        generateFileFromFileLinks: '从文件链接生成时间轴文件',
+        generateFromFileLinks: '从当前文件链接生成时间轴视图',
+        generateFileFromFileLinks: '从当前文件链接生成时间轴文件',
         generateFromMetadata: '从元数据生成时间轴视图',
         generateFileFromMetadata: '从元数据生成时间轴文件'
     },
@@ -199,8 +199,8 @@ export const enUS: I18nStrings = {
         generateFileFromFolder: 'Generate Timeline File from any Folder',
         generateFromTag: 'Generate Timeline View from any Tag',
         generateFileFromTag: 'Generate Timeline File from any Tag',
-        generateFromFileLinks: 'Generate Timeline View from File Links',
-        generateFileFromFileLinks: 'Generate Timeline File from File Links',
+        generateFromFileLinks: 'Generate Timeline View from Current File Links',
+        generateFileFromFileLinks: 'Generate Timeline File from Current File Links',
         generateFromMetadata: 'Generate Timeline View from any Metadata',
         generateFileFromMetadata: 'Generate Timeline File from any Metadata'
     },

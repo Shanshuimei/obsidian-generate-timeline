@@ -180,20 +180,32 @@ export default class TimelinePlugin extends Plugin {
 				name: this.i18n.commands.generateFromFileLinks,
 				callback: async () => {
 					try {
-						const file = await this.selectFile();
-						if (file) {
-							await this.activateView(this.settings.defaultPosition);
-							const view = this.getTimelineView();
-							if (view) {
-								const timeline = new Timeline(this.app, this.settings);
-								const items = await timeline.generateFromFileLinks(file);
-								view.items = items;
-								view.currentTitle = `🔗 ${file.basename} `;
-								await view.render();
-							}
+						// 获取当前活动文件
+						const file = this.app.workspace.getActiveFile();
+						if (!file || !(file instanceof TFile) || file.extension !== 'md') {
+							new Notice(this.i18n.errors.generateFileFailed);
+							return;
+						}
+
+						// 检查文件是否包含链接
+						const cache = this.app.metadataCache.getFileCache(file);
+						if (!cache || !cache.links || cache.links.length === 0) {
+							new Notice(this.i18n.errors.noFileLinks.replace('{filename}', file.basename));
+							return;
+						}
+
+						await this.activateView(this.settings.defaultPosition);
+						const view = this.getTimelineView();
+						if (view) {
+							const timeline = new Timeline(this.app, this.settings);
+							const items = await timeline.generateFromFileLinks(file);
+							view.items = items;
+							view.currentTitle = `🔗 ${file.basename} `;
+							await view.render();
 						}
 					} catch (error) {
 						console.error('从文件链接生成时间轴视图时出错:', error);
+						new Notice(this.i18n.errors.generateFileFailed);
 					}
 				}
 			});
@@ -204,30 +216,42 @@ export default class TimelinePlugin extends Plugin {
 				name: this.i18n.commands.generateFileFromFileLinks,
 				callback: async () => {
 					try {
-						const file = await this.selectFile();
-						if (file) {
-							const timeline = new Timeline(this.app, this.settings);
-							const items = await timeline.generateFromFileLinks(file);
-							const content = await timeline.generateTimelineMarkdown(
-								items, 
-								`Timeline - Links in ${file.basename}`, 
-								{ type: 'file', value: file.path }
-							);
-							
-							const { folderPath } = await this.createNestedFolders('linked-files');
-							const finalFileName = this.generateFileName(file.basename);
-							const filePath = `${folderPath}/${finalFileName}.md`;
-							
-							const existingFile = this.app.vault.getAbstractFileByPath(filePath);
-							if (existingFile) {
-								await this.app.vault.delete(existingFile);
-							}
-							
-							const newFile = await this.app.vault.create(filePath, content);
-							await this.app.workspace.getLeaf().openFile(newFile);
+						// 获取当前活动文件
+						const file = this.app.workspace.getActiveFile();
+						if (!file || !(file instanceof TFile) || file.extension !== 'md') {
+							new Notice(this.i18n.errors.generateFileFailed);
+							return;
 						}
+
+						// 检查文件是否包含链接
+						const cache = this.app.metadataCache.getFileCache(file);
+						if (!cache || !cache.links || cache.links.length === 0) {
+							new Notice(this.i18n.errors.noFileLinks.replace('{filename}', file.basename));
+							return;
+						}
+
+						const timeline = new Timeline(this.app, this.settings);
+						const items = await timeline.generateFromFileLinks(file);
+						const content = await timeline.generateTimelineMarkdown(
+							items, 
+							`Timeline - Links in ${file.basename}`, 
+							{ type: 'file', value: file.path }
+						);
+						
+						const { folderPath } = await this.createNestedFolders('linked-files');
+						const finalFileName = this.generateFileName(file.basename);
+						const filePath = `${folderPath}/${finalFileName}.md`;
+						
+						const existingFile = this.app.vault.getAbstractFileByPath(filePath);
+						if (existingFile) {
+							await this.app.vault.delete(existingFile);
+						}
+						
+						const newFile = await this.app.vault.create(filePath, content);
+						await this.app.workspace.getLeaf().openFile(newFile);
 					} catch (error) {
 						console.error('从文件链接生成时间轴文件时出错:', error);
+						new Notice(this.i18n.errors.generateFileFailed);
 					}
 				}
 			});
