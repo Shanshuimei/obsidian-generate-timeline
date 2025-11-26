@@ -3,17 +3,17 @@
   "lineColor": "var(--interactive-accent)",
   "itemSpacing": 30,
   "cardBackground": "var(--background-primary-alt)",
-  "cardTextColor": "#ffffff",
+  "cardTextColor": "var(--text-normal)",
   "cardBorderColor": "var(--background-modifier-border)",
-  "milestoneCardBackground": "#ffffff",
-  "milestoneCardTextColor": "#000000",
+  "milestoneCardBackground": "#ffffcc",
+  "milestoneCardTextColor": "var(--text-normal)",
   "milestoneCardBorderColor": "#f0e68c",
   "animationDuration": 200,
   "dateAttribute": "created",
   "fileNamePrefix": "",
   "fileNameSuffix": "",
   "defaultPosition": "right",
-  "language": "zh-CN",
-  "milestoneAttribute": "milestone",
-  "milestoneValue": "yes"
+  "language": "en-US",
+  "milestoneAttribute": "",
+  "milestoneValue": ""
 }

@@ -111,46 +111,78 @@ export class Timeline {
     async generateFromMetadata(metadataQuery: string): Promise<TimelineItem[]> {
         const allFiles = this.app.vault.getMarkdownFiles();
         const items: TimelineItem[] = [];
-        const queryParts = metadataQuery.split(':').map(p => p.trim());
-        const queryKey = queryParts[0];
-        const queryValue = queryParts.length > 1 ? queryParts.slice(1).join(':').trim() : null;
+        
+        // 更健壮的查询解析
+        let queryKey: string;
+        let queryValue: string | null = null;
+        
+        // 尝试寻找第一个冒号作为分隔符
+        const firstColonIndex = metadataQuery.indexOf(':');
+        if (firstColonIndex > 0) {
+            queryKey = metadataQuery.substring(0, firstColonIndex).trim();
+            queryValue = metadataQuery.substring(firstColonIndex + 1).trim();
+            
+            // 如果值为空，则只查询键
+            if (queryValue === '') {
+                queryValue = null;
+            }
+        } else {
+            // 如果没有冒号，则只查询键
+            queryKey = metadataQuery.trim();
+        }
 
         for (const file of allFiles) {
-            const cache = this.app.metadataCache.getFileCache(file);
-            if (!cache || !cache.frontmatter) continue;
+            try {
+                const cache = this.app.metadataCache.getFileCache(file);
+                if (!cache || !cache.frontmatter) continue;
 
-            const frontmatter = cache.frontmatter;
-            let match = false;
+                const frontmatter = cache.frontmatter;
+                let match = false;
 
-            if (queryValue !== null) {
-                // 检查 key: value 匹配
-                const fmValue = frontmatter[queryKey];
-                if (fmValue !== undefined) {
-                    if (Array.isArray(fmValue)) {
-                        // 如果 frontmatter 值是数组，检查数组中是否包含查询值
-                        // 特殊处理 "- 我" 这种带 "- " 前缀的查询值
-                        const cleanedQueryValue = queryValue.startsWith('- ') ? queryValue.substring(2) : queryValue;
-                        if (fmValue.map(String).map(v => v.trim()).includes(cleanedQueryValue)) {
-                            match = true;
+                if (queryValue !== null) {
+                    // 检查 key: value 匹配
+                    const fmValue = frontmatter[queryKey];
+                    if (fmValue !== undefined && fmValue !== null) {
+                        if (Array.isArray(fmValue)) {
+                            // 如果 frontmatter 值是数组，检查数组中是否包含查询值
+                            // 更健壮的数组项匹配，支持多种格式
+                            const cleanedQueryValue = queryValue.startsWith('- ') ? queryValue.substring(2) : queryValue;
+                            
+                            // 转换所有数组项为字符串并修剪，然后进行不区分大小写的匹配
+                            match = fmValue.some(item => {
+                                const itemStr = String(item).trim().toLowerCase();
+                                const queryStr = cleanedQueryValue.toLowerCase();
+                                return itemStr === queryStr || 
+                                       itemStr.includes(queryStr) || 
+                                       queryStr.includes(itemStr);
+                            });
+                        } else {
+                            // 非数组值的匹配，支持部分匹配和大小写不敏感
+                            const fmValueStr = String(fmValue).trim().toLowerCase();
+                            const queryValueStr = queryValue.toLowerCase();
+                            
+                            match = fmValueStr === queryValueStr || 
+                                   fmValueStr.includes(queryValueStr) || 
+                                   queryValueStr.includes(fmValueStr);
                         }
-                    } else if (String(fmValue).trim() === queryValue) {
-                        match = true;
+                    }
+                } else {
+                    // 只检查 key 是否存在
+                    match = Object.prototype.hasOwnProperty.call(frontmatter, queryKey);
+                }
+
+                if (match) {
+                    const item = await this.createTimelineItem(file, undefined, metadataQuery);
+                    if (item) {
+                        items.push(item);
                     }
                 }
-            } else {
-                // 只检查 key 是否存在
-                if (frontmatter.hasOwnProperty(queryKey)) {
-                    match = true;
-                }
-            }
-
-            if (match) {
-                const item = await this.createTimelineItem(file, undefined, metadataQuery);
-                if (item) {
-                    items.push(item);
-                }
+            } catch (error) {
+                console.error(`处理文件 ${file.path} 时出错:`, error);
+                continue;
             }
         }
+        
         return this.sortItemsByDate(items);
     }
 
@@ -194,31 +226,63 @@ export class Timeline {
         const allFiles = this.app.vault.getMarkdownFiles();
         const items: TimelineItem[] = [];
         
-        // 移除开头的#号（如果存在）
-        const normalizedTag = tag.replace(/^#/, '');
+        // 移除开头的#号（如果存在）并标准化标签
+        const normalizedTag = tag.replace(/^#/, '').trim();
+        
+        // 辅助函数：检查两个标签是否匹配（支持精确匹配和子标签匹配）
+        const isMatchingTag = (fileTag: string, searchTag: string): boolean => {
+            const cleanFileTag = fileTag.replace(/^#/, '').trim().toLowerCase();
+            const cleanSearchTag = searchTag.toLowerCase();
+            return cleanFileTag === cleanSearchTag || 
+                   cleanFileTag.startsWith(cleanSearchTag + '/') ||
+                   cleanSearchTag.includes(cleanFileTag); // 支持部分匹配
+        };
         
         for (const file of allFiles) {
-            const cache = this.app.metadataCache.getFileCache(file);
-            if (!cache) continue;
+            try {
+                const cache = this.app.metadataCache.getFileCache(file);
+                if (!cache) continue;
 
-            // 检查文件是否包含目标标签或其子标签 (保持原有逻辑)
-            const hasMatchingTag = (cache.tags && cache.tags.some(tagObj => {
-                const fileTag = tagObj.tag.replace(/^#/, '');
-                return fileTag === normalizedTag || // 完全匹配
-                       fileTag.startsWith(normalizedTag + '/'); // 子标签匹配
-            })) || (cache.frontmatter?.tags && Array.isArray(cache.frontmatter.tags) && cache.frontmatter.tags.some((frontmatterTag: string | unknown) => {
-                if (typeof frontmatterTag !== 'string') return false;
-                const fileTag = frontmatterTag.replace(/^#/, '');
-                return fileTag === normalizedTag || // 完全匹配
-                       fileTag.startsWith(normalizedTag + '/'); // 子标签匹配
-            }));
+                let hasMatchingTag = false;
 
-            if (hasMatchingTag) {
-                // 将 normalizedTag 传递给 createTimelineItem
-                const item = await this.createTimelineItem(file, normalizedTag);
-                if (item) {
-                    items.push(item);
+                // 检查文件内容中的标签（cache.tags）
+                if (cache.tags && cache.tags.length > 0) {
+                    hasMatchingTag = cache.tags.some(tagObj => {
+                        return isMatchingTag(tagObj.tag, normalizedTag);
+                    });
                 }
+
+                // 如果内容中没有匹配的标签，检查frontmatter中的标签
+                if (!hasMatchingTag && cache.frontmatter?.tags) {
+                    const frontmatterTags = cache.frontmatter.tags;
+                    
+                    if (Array.isArray(frontmatterTags)) {
+                        // 数组形式的标签
+                        hasMatchingTag = frontmatterTags.some((frontmatterTag: any) => {
+                            if (typeof frontmatterTag !== 'string') return false;
+                            return isMatchingTag(frontmatterTag, normalizedTag);
+                        });
+                    } else if (typeof frontmatterTags === 'string') {
+                        // 字符串形式的标签，支持多种分隔符
+                        const normalizedTags = frontmatterTags.replace(/[,;]/g, ' ').trim();
+                        const tagList = normalizedTags.split(/\s+/);
+                        
+                        hasMatchingTag = tagList.some((tagItem: string) => {
+                            return isMatchingTag(tagItem, normalizedTag);
+                        });
+                    }
+                }
+
+                if (hasMatchingTag) {
+                    // 将 normalizedTag 传递给 createTimelineItem
+                    const item = await this.createTimelineItem(file, normalizedTag);
+                    if (item) {
+                        items.push(item);
+                    }
+                }
+            } catch (error) {
+                console.error(`处理文件 ${file.path} 时出错:`, error);
+                continue;
             }
         }
         

@@ -17,7 +17,7 @@ import { FolderSuggestModal } from './FolderSuggest';
 import { TagSuggestModal } from './TagSuggest';
 import { FileSuggestModal } from './FileSuggest';
 import { TimelineSettings, DEFAULT_SETTINGS } from './TimelineSettings';
-import { Timeline } from './Timeline';
+import { Timeline, TimelineItem } from './Timeline';
 import { TFolder } from 'obsidian';
 
 export default class TimelinePlugin extends Plugin {
@@ -290,6 +290,39 @@ export default class TimelinePlugin extends Plugin {
 					}
 				}
 			});
+
+			// 添加file-open事件监听器
+			this.registerEvent(
+				this.app.workspace.on("file-open", async (file) => {
+					if (file instanceof TFile && file.path.startsWith("timelines/") && file.extension === "md") {
+						const cache = this.app.metadataCache.getFileCache(file);
+						const generatedFrom = cache?.frontmatter?.generated_from;
+						if (generatedFrom) {
+							const [type, ...valueParts] = generatedFrom.split(":");
+							const value = valueParts.join(":");
+							const timeline = new Timeline(this.app, this.settings);
+							let items: TimelineItem[] = [];
+							if (type === "folder") {
+								const folder = this.app.vault.getAbstractFileByPath(value);
+								if (folder instanceof TFolder) {
+									items = await timeline.generateFromFolder(folder);
+								}
+							} else if (type === "tag") {
+								items = await timeline.generateFromTag(value);
+							} else if (type === "file") {
+								const targetFile = this.app.vault.getAbstractFileByPath(value);
+								if (targetFile instanceof TFile) {
+									items = await timeline.generateFromFileLinks(targetFile);
+								}
+							} else if (type === "metadata") {
+								items = await timeline.generateFromMetadata(value);
+							}
+							const content = await timeline.generateTimelineMarkdown(items, `Timeline - ${value}`, { type, value });
+							await this.app.vault.modify(file, content);
+						}
+					}
+				})
+			);
 
 		} catch (error) {
 			console.error('插件加载时出错:', error);

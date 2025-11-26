@@ -25,8 +25,12 @@ export class TagSuggestModal extends FuzzySuggestModal<string> {
                     tags.add(tag.replace('#', ''));
                 });
             } else if (typeof frontmatterTags === 'string') {
-                frontmatterTags.split('-').forEach((tag: string) => {
-                    tags.add(tag.trim().replace('#', ''));
+                // 处理字符串形式的标签，支持逗号分隔和空格分隔
+                const normalizedTags = frontmatterTags.replace(/[,;]/g, ' ').trim();
+                normalizedTags.split(/\s+/).forEach((tag: string) => {
+                    if (tag) {
+                        tags.add(tag.trim().replace('#', ''));
+                    }
                 });
             }
         });
